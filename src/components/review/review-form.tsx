@@ -15,11 +15,13 @@ export default function ReviewForm({
   productId,
   slug,
   signedIn,
+  hasPurchased = false,
   existing,
 }: {
   productId: string;
   slug: string;
   signedIn: boolean;
+  hasPurchased?: boolean;
   existing?: Review | null;
 }) {
   const [state, formAction] = useActionState(submitReview, initial);
@@ -43,14 +45,53 @@ export default function ReviewForm({
     );
   }
 
+  // อนุญาตให้รีวิวได้เฉพาะผู้ที่เคยซื้อ หรือมีรีวิวเดิมอยู่แล้ว
+  if (!hasPurchased && !existing) {
+    return (
+      <div className="rounded-card border border-ink-200 bg-ink-50/50 p-6 text-center">
+        <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-full bg-ink-100 text-xl">
+          🛍️
+        </div>
+        <h3 className="font-semibold text-ink-800">
+          ให้ดาวและรีวิวได้เฉพาะผู้ที่เคยสั่งซื้อสินค้ารุ่นนี้เท่านั้น
+        </h3>
+        <p className="mx-auto mt-1.5 max-w-md text-xs leading-relaxed text-ink-500">
+          ระบบเปิดให้รีวิวเฉพาะผู้ใช้ที่สั่งซื้อสินค้ารุ่นนี้สำเร็จ เพื่อให้คะแนนและรีวิวมีความน่าเชื่อถือและสะท้อนประสบการณ์จากผู้ใช้งานจริง
+        </p>
+        <div className="mt-4 flex flex-wrap justify-center gap-2">
+          <a
+            href="#listings"
+            className="rounded-lg border border-ink-200 bg-white px-4 py-2 text-xs font-semibold text-ink-700 transition hover:border-brand-300 hover:text-brand-600"
+          >
+            ดูประกาศขายมือสองของรุ่นนี้
+          </a>
+          <Link
+            href="/profile?tab=purchase"
+            className="rounded-lg border border-ink-200 bg-white px-4 py-2 text-xs font-semibold text-ink-700 transition hover:border-brand-300 hover:text-brand-600"
+          >
+            ตรวจสอบประวัติการซื้อของคุณ
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   if (!open) {
     return (
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="w-full rounded-card border border-dashed border-ink-200 px-4 py-6 text-sm font-medium text-ink-600 hover:border-brand-300 hover:text-brand-600"
+        className="w-full rounded-card border border-dashed border-brand-300 bg-brand-50/20 px-4 py-6 text-sm font-medium text-brand-700 transition hover:bg-brand-50 hover:text-brand-800"
       >
-        {existing ? "แก้ไขรีวิวของฉัน" : "+ เขียนรีวิวรุ่นนี้"}
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-semibold text-green-800">
+            <svg className="size-3.5 fill-current" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+            </svg>
+            ผู้ซื้อที่ยืนยันแล้ว
+          </span>
+          <span>{existing ? "แก้ไขรีวิวของฉัน" : "+ เขียนรีวิวและให้คะแนนรุ่นนี้"}</span>
+        </div>
       </button>
     );
   }
@@ -63,6 +104,19 @@ export default function ReviewForm({
       <input type="hidden" name="product_id" value={productId} />
       <input type="hidden" name="slug" value={slug} />
       <input type="hidden" name="rating" value={rating} />
+
+      <div className="flex items-center gap-2 rounded-lg bg-green-50 px-3 py-2 text-xs font-medium text-green-800">
+        <svg className="size-4 shrink-0 fill-current" viewBox="0 0 20 20">
+          <path
+            fillRule="evenodd"
+            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+            clipRule="evenodd"
+          />
+        </svg>
+        <span>
+          <strong>ผู้ซื้อที่ได้รับการยืนยัน:</strong> คุณเคยสั่งซื้อสินค้ารุ่นนี้แล้ว สามารถให้คะแนนดาวและรีวิวประสบการณ์การใช้งานได้
+        </span>
+      </div>
 
       <div>
         <p className="text-sm font-medium">ให้คะแนน</p>

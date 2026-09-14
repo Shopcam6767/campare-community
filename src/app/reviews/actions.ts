@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
+import { hasPurchasedProduct } from "@/lib/queries";
 
 export type FormState = { error?: string; message?: string };
 
@@ -41,6 +42,14 @@ export async function submitReview(
     return { error: "ให้คะแนน 1–5 ดาว" };
   if (body.length < 10)
     return { error: "เขียนรายละเอียดอย่างน้อย 10 ตัวอักษร" };
+
+  // ตรวจสอบว่าผู้ใช้เคยซื้อสินค้ารุ่นนี้จริงหรือไม่
+  const purchased = await hasPurchasedProduct(productId, user.id);
+  if (!purchased) {
+    return {
+      error: "คุณสามารถให้คะแนนและเขียนรีวิวได้เฉพาะสินค้าที่เคยสั่งซื้อแล้วเท่านั้น",
+    };
+  }
 
   // upsert เพราะ 1 คนรีวิว 1 รุ่นได้ครั้งเดียว (unique product_id + author_id)
   const { error } = await supabase.from("reviews").upsert(
