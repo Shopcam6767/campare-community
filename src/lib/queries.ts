@@ -539,3 +539,34 @@ export const getCurrentUser = cache(async () => {
     return null;
   }
 });
+
+/**
+ * ตรวจสอบว่าผู้ใช้เคยสั่งซื้อสินค้านี้สำเร็จแล้วหรือไม่ (สถานะ paid, shipped, completed)
+ * ใช้สำหรับสิทธิ์การเขียนรีวิวและให้คะแนนดาว
+ */
+export async function hasPurchasedProduct(
+  productId: string,
+  userId?: string
+): Promise<boolean> {
+  if (!isSupabaseConfigured || !productId) return false;
+
+  try {
+    const uid = userId ?? (await getAuthUser())?.id;
+    if (!uid) return false;
+
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("orders")
+      .select("id, order_items!inner ( product_id )")
+      .eq("buyer_id", uid)
+      .in("status", ["paid", "shipped", "completed"])
+      .eq("order_items.product_id", productId)
+      .limit(1);
+
+    if (error || !data) return false;
+    return data.length > 0;
+  } catch {
+    return false;
+  }
+}
+

@@ -17,6 +17,7 @@ import {
   getRelatedProducts,
   getReviews,
   getWishlistEntry,
+  hasPurchasedProduct,
 } from "@/lib/queries";
 import WishlistTarget from "@/components/wishlist-target";
 import { specGroupsFor } from "@/lib/specs";
@@ -62,6 +63,10 @@ export default async function ProductPage({ params }: { params: Params }) {
     getCurrentUser(),
     getWishlistEntry(product.id),
   ]);
+
+  const hasPurchased = session
+    ? await hasPurchasedProduct(product.id, session.user.id)
+    : false;
 
   const price = product.market_price ?? product.msrp;
   const groups = specGroupsFor(product);
@@ -297,6 +302,7 @@ export default async function ProductPage({ params }: { params: Params }) {
             productId={product.id}
             slug={product.slug}
             signedIn={!!session}
+            hasPurchased={hasPurchased}
             existing={myReview}
           />
         </div>

@@ -248,7 +248,7 @@ async function PurchaseTab({ supabase }: { supabase: SupabaseServer }) {
   const { data } = await supabase
     .from("orders")
     .select(
-      "id, order_no, status, total, ordered_at, order_items ( id, product_name, unit_price, quantity )"
+      "id, order_no, status, total, ordered_at, order_items ( id, product_name, unit_price, quantity, products ( slug ) )"
     )
     .order("ordered_at", { ascending: false })
     .limit(20);
@@ -259,7 +259,13 @@ async function PurchaseTab({ supabase }: { supabase: SupabaseServer }) {
     status: string;
     total: number;
     ordered_at: string;
-    order_items: { id: string; product_name: string; unit_price: number; quantity: number }[];
+    order_items: {
+      id: string;
+      product_name: string;
+      unit_price: number;
+      quantity: number;
+      products: { slug: string } | null;
+    }[];
   }[];
 
   return (
@@ -301,7 +307,20 @@ async function PurchaseTab({ supabase }: { supabase: SupabaseServer }) {
                 <tbody className="divide-y divide-ink-100">
                   {o.order_items.map((it) => (
                     <tr key={it.id}>
-                      <td className="px-4 py-2">{it.product_name}</td>
+                      <td className="px-4 py-2">
+                        <p className="font-medium">{it.product_name}</p>
+                        {it.products?.slug &&
+                          (o.status === "paid" ||
+                            o.status === "completed" ||
+                            o.status === "shipped") && (
+                            <Link
+                              href={`/product/${it.products.slug}`}
+                              className="mt-0.5 inline-flex items-center gap-1 text-xs text-brand-600 hover:underline"
+                            >
+                              ★ เขียนรีวิว / ให้คะแนน
+                            </Link>
+                          )}
+                      </td>
                       <td className="px-4 py-2">{formatPrice(it.unit_price)}</td>
                       <td className="px-4 py-2">{it.quantity}</td>
                       <td className="px-4 py-2 text-right">
