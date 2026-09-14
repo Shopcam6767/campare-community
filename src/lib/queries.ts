@@ -19,7 +19,6 @@ import type {
 const PRODUCT_FULL_SELECT = `
   id, slug, product_no, name, product_type, company_id, announced_date, release_year, status,
   msrp, market_price, thumbnail_url, summary, best_for, highlight, avg_rating, review_count,
-  price_source_url, price_checked_at,
   companies!inner ( id, name, slug, country, logo_url ),
   camera_specs ( * ),
   lens_specs ( * )
@@ -332,22 +331,72 @@ export async function getProductOptionBySlug(
   }
 }
 
-export async function getProductBySlug(slug: string): Promise<Product | null> {
-  if (!isSupabaseConfigured)
-    return MOCK_PRODUCTS.find((p) => p.slug === slug) ?? null;
+export async function getProductBySlug(rawSlug: string): Promise<Product | null> {
+  const decoded = decodeURIComponent(rawSlug).trim();
+  const normalized = decoded
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  if (!isSupabaseConfigured) {
+    return (
+      MOCK_PRODUCTS.find(
+        (p) =>
+          p.slug === rawSlug ||
+          p.slug === decoded ||
+          p.slug === normalized ||
+          p.name.toLowerCase() === decoded.toLowerCase()
+      ) ?? null
+    );
+  }
 
   try {
     const supabase = await createClient();
-    const { data, error } = await supabase
+
+    // 1. ค้นหาด้วย slug ตรงตัวก่อน
+    let { data, error } = await supabase
       .from("products")
       .select(PRODUCT_FULL_SELECT)
-      .eq("slug", slug)
+      .eq("slug", rawSlug)
       .eq("is_deleted", false)
       .maybeSingle();
+
+    // 2. ถ้าไม่เจอ และ slug มีช่องว่างหรืออักขระพิเศษ ให้ลองหาด้วย normalized slug (มีขีดคั่น)
+    if (!data && normalized && normalized !== rawSlug) {
+      const res = await supabase
+        .from("products")
+        .select(PRODUCT_FULL_SELECT)
+        .eq("slug", normalized)
+        .eq("is_deleted", false)
+        .maybeSingle();
+      data = res.data;
+      error = res.error;
+    }
+
+    // 3. ถ้ายังไม่เจอ ให้ลองหาด้วยชื่อสินค้า (name) หรือรหัสสินค้า (product_no) เผื่อผู้ใช้พิมพ์ชื่อเข้ามาตรงๆ
+    if (!data && decoded) {
+      const res = await supabase
+        .from("products")
+        .select(PRODUCT_FULL_SELECT)
+        .or(`name.ilike.${decoded},product_no.ilike.${decoded}`)
+        .eq("is_deleted", false)
+        .maybeSingle();
+      data = res.data;
+      error = res.error;
+    }
+
     if (error) throw error;
     return (data as unknown as Product) ?? null;
   } catch {
-    return MOCK_PRODUCTS.find((p) => p.slug === slug) ?? null;
+    return (
+      MOCK_PRODUCTS.find(
+        (p) =>
+          p.slug === rawSlug ||
+          p.slug === decoded ||
+          p.slug === normalized ||
+          p.name.toLowerCase() === decoded.toLowerCase()
+      ) ?? null
+    );
   }
 }
 

@@ -8,6 +8,11 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       // รูปสินค้าที่อัปโหลดขึ้น Supabase Storage
+      {
+        protocol: "https",
+        hostname: "*.supabase.co",
+        pathname: "/storage/v1/object/public/**",
+      },
       ...(supabaseHost
         ? [{ protocol: "https" as const, hostname: supabaseHost, pathname: "/storage/v1/object/public/**" }]
         : []),
@@ -26,6 +31,8 @@ const nextConfig: NextConfig = {
       // รูปตัวอย่างตอน dev (placehold.co ถูกเอาออกแล้ว เพราะส่ง SVG มาซึ่ง next/image บล็อก
       // ตอนนี้ใช้ ProductThumb วาด placeholder เองแทน)
       { protocol: "https", hostname: "images.unsplash.com" },
+      // รองรับรูปภาพภายนอกจากทุก URL โดยตรง
+      { protocol: "https", hostname: "**" },
     ],
   },
 };
