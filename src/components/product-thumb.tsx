@@ -8,10 +8,14 @@ import Image from "next/image";
  * placeholder ที่วาดเองเร็วกว่า สวยกว่า และไม่ต้องยิงเน็ตออกไปข้างนอก
  */
 
+import { getProductImageUrl } from "@/lib/product-images";
+
 const REMOTE_PLACEHOLDER_HOSTS = ["placehold.co", "via.placeholder.com"];
 
 export function isRealImage(url: string | null | undefined) {
   if (!url) return false;
+  // รูป local เช่น /images/products/... ถือเป็นรูปจริงเสมอ
+  if (url.startsWith("/") || url.startsWith("./")) return true;
   try {
     return !REMOTE_PLACEHOLDER_HOSTS.includes(new URL(url).hostname);
   } catch {
@@ -22,20 +26,24 @@ export function isRealImage(url: string | null | undefined) {
 export default function ProductThumb({
   src,
   alt,
+  slug,
   sizes,
   priority = false,
   className = "",
 }: {
   src: string | null | undefined;
   alt: string;
+  slug?: string;
   sizes?: string;
   priority?: boolean;
   className?: string;
 }) {
-  if (isRealImage(src)) {
+  const resolvedSrc = getProductImageUrl(slug, src);
+
+  if (isRealImage(resolvedSrc)) {
     return (
       <Image
-        src={src!}
+        src={resolvedSrc!}
         alt={alt}
         fill
         priority={priority}
