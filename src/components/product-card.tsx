@@ -19,6 +19,7 @@ export default function ProductCard({ product }: { product: Product }) {
           <ProductThumb
             src={product.thumbnail_url}
             alt={product.name}
+            slug={product.slug}
             sizes="(max-width: 768px) 50vw, 25vw"
             className="transition duration-300 group-hover:scale-105"
           />

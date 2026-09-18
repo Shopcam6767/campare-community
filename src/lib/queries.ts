@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getAuthUser } from "@/lib/supabase/user";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { MOCK_BRANDS, MOCK_PRODUCTS } from "@/lib/mock-data";
+import { resolveProductImage } from "@/lib/product-images";
 import type {
   Company,
   Listing,
@@ -219,7 +220,7 @@ export const getProductsPage = cache(async function getProductsPage(
 
     const total = count ?? 0;
     return {
-      items: (data ?? []) as unknown as Product[],
+      items: ((data ?? []) as unknown as Product[]).map(resolveProductImage),
       total,
       page: safePage,
       perPage,
@@ -228,7 +229,7 @@ export const getProductsPage = cache(async function getProductsPage(
   } catch {
     const all = applyFiltersLocally(MOCK_PRODUCTS, f);
     return {
-      items: all.slice(from, from + perPage),
+      items: all.slice(from, from + perPage).map(resolveProductImage),
       total: all.length,
       page: safePage,
       perPage,
@@ -243,7 +244,7 @@ export const getProducts = cache(async function getProducts(
   limit = 24
 ): Promise<Product[]> {
   if (!isSupabaseConfigured)
-    return applyFiltersLocally(MOCK_PRODUCTS, f).slice(0, limit);
+    return applyFiltersLocally(MOCK_PRODUCTS, f).slice(0, limit).map(resolveProductImage);
 
   try {
     const supabase = await createClient();
@@ -255,9 +256,9 @@ export const getProducts = cache(async function getProducts(
     ).limit(limit);
     if (error) throw error;
 
-    return (data ?? []) as unknown as Product[];
+    return ((data ?? []) as unknown as Product[]).map(resolveProductImage);
   } catch {
-    return applyFiltersLocally(MOCK_PRODUCTS, f).slice(0, limit);
+    return applyFiltersLocally(MOCK_PRODUCTS, f).slice(0, limit).map(resolveProductImage);
   }
 });
 
@@ -386,17 +387,16 @@ export async function getProductBySlug(rawSlug: string): Promise<Product | null>
     }
 
     if (error) throw error;
-    return (data as unknown as Product) ?? null;
+    return data ? resolveProductImage(data as unknown as Product) : null;
   } catch {
-    return (
-      MOCK_PRODUCTS.find(
-        (p) =>
-          p.slug === rawSlug ||
-          p.slug === decoded ||
-          p.slug === normalized ||
-          p.name.toLowerCase() === decoded.toLowerCase()
-      ) ?? null
+    const p = MOCK_PRODUCTS.find(
+      (x) =>
+        x.slug === rawSlug ||
+        x.slug === decoded ||
+        x.slug === normalized ||
+        x.name.toLowerCase() === decoded.toLowerCase()
     );
+    return p ? resolveProductImage(p) : null;
   }
 }
 
@@ -409,7 +409,7 @@ export async function getProductsBySlugs(slugs: string[]): Promise<Product[]> {
   if (!slugs.length) return [];
 
   if (!isSupabaseConfigured) {
-    const bySlug = new Map(MOCK_PRODUCTS.map((p) => [p.slug, p]));
+    const bySlug = new Map(MOCK_PRODUCTS.map(resolveProductImage).map((p) => [p.slug, p]));
     return slugs.map((s) => bySlug.get(s)).filter((p): p is Product => !!p);
   }
 
@@ -424,11 +424,11 @@ export async function getProductsBySlugs(slugs: string[]): Promise<Product[]> {
 
     // เรียงตามลำดับที่ผู้ใช้เลือกไว้ ไม่ใช่ลำดับที่ DB คืนมา
     const bySlug = new Map(
-      ((data ?? []) as unknown as Product[]).map((p) => [p.slug, p])
+      ((data ?? []) as unknown as Product[]).map(resolveProductImage).map((p) => [p.slug, p])
     );
     return slugs.map((s) => bySlug.get(s)).filter((p): p is Product => !!p);
   } catch {
-    const bySlug = new Map(MOCK_PRODUCTS.map((p) => [p.slug, p]));
+    const bySlug = new Map(MOCK_PRODUCTS.map(resolveProductImage).map((p) => [p.slug, p]));
     return slugs.map((s) => bySlug.get(s)).filter((p): p is Product => !!p);
   }
 }
