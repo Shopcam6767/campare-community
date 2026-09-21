@@ -67,17 +67,46 @@ export function displayPrice(p: Product) {
   return p.market_price ?? p.msrp ?? 0;
 }
 
+export const getBrands = cache(async function getBrands(): Promise<Company[]> {
+  if (!isSupabaseConfigured) return MOCK_BRANDS as Company[];
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("companies")
+      .select("id, name, slug, country, logo_url")
+      .order("name");
+    if (error) throw error;
+    return (data ?? []) as Company[];
+  } catch {
+    return MOCK_BRANDS as Company[];
+  }
+});
+
+/**
+ * แยกคำค้นหาและตัดอักขระที่ทำให้ตัวกรองของ PostgREST เพี้ยน
+ * ตัดข้อความคั่นด้วย , และ () ออกเพื่อไม่ให้ถูกอ่านเป็นไวยากรณ์ของตัวกรอง
+ */
+export function safeTerms(q: string): string[] {
+  return q
+    .replace(/[,()%\\]/g, " ")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 5);
+}
+
 function applyFiltersLocally(items: Product[], f: ProductFilters) {
   let out = items;
 
   if (f.q) {
-    const q = f.q.toLowerCase();
-    out = out.filter(
-      (p) =>
-        p.name.toLowerCase().includes(q) ||
-        p.product_no.toLowerCase().includes(q) ||
-        (p.companies?.name ?? "").toLowerCase().includes(q)
-    );
+    const terms = safeTerms(f.q).map((t) => t.toLowerCase());
+    if (terms.length > 0) {
+      out = out.filter((p) => {
+        const brand = p.companies?.name ?? "";
+        const target = `${p.name} ${p.product_no} ${brand}`.toLowerCase();
+        return terms.every((t) => target.includes(t));
+      });
+    }
   }
   if (f.type) out = out.filter((p) => p.product_type === f.type);
   if (f.brands?.length)
@@ -116,21 +145,13 @@ function applyFiltersLocally(items: Product[], f: ProductFilters) {
   return sorted;
 }
 
-/**
- * ตัดอักขระที่ทำให้ตัวกรองของ PostgREST เพี้ยน
- * ตัวกรองส่งไปเป็นข้อความคั่นด้วย , และ () — ถ้าผู้ใช้พิมพ์อักขระพวกนี้มา
- * มันจะถูกอ่านเป็นไวยากรณ์ของตัวกรองแทนที่จะเป็นคำค้น
- */
-function safeTerm(q: string) {
-  return q.replace(/[,()%\\]/g, " ").trim().slice(0, 60);
-}
-
 /** ประกอบเงื่อนไขกรอง+เรียงให้ฐานข้อมูลทำ แทนที่จะลากมากรองในโค้ด */
 function buildProductQuery(
   supabase: Awaited<ReturnType<typeof createClient>>,
   f: ProductFilters,
   select: string,
-  withCount: boolean
+  withCount: boolean,
+  brands: Company[] = []
 ) {
   let query = supabase
     .from("products")
@@ -138,9 +159,26 @@ function buildProductQuery(
     .eq("is_deleted", false);
 
   if (f.q) {
-    const term = safeTerm(f.q);
-    if (term) {
-      query = query.or(`name.ilike.%${term}%,product_no.ilike.%${term}%`);
+    const terms = safeTerms(f.q);
+    if (terms.length > 0) {
+      for (const term of terms) {
+        const lower = term.toLowerCase();
+        const matchedBrandIds = brands
+          .filter(
+            (b) =>
+              b.name.toLowerCase().includes(lower) ||
+              b.slug.toLowerCase().includes(lower)
+          )
+          .map((b) => b.id);
+
+        const conditions = [
+          `name.ilike.%${term}%`,
+          `product_no.ilike.%${term}%`,
+          ...matchedBrandIds.map((id) => `company_id.eq.${id}`),
+        ];
+
+        query = query.or(conditions.join(","));
+      }
     }
   }
   if (f.type) query = query.eq("product_type", f.type);
@@ -209,11 +247,13 @@ export const getProductsPage = cache(async function getProductsPage(
 
   try {
     const supabase = await createClient();
+    const brands = await getBrands();
     const { data, error, count } = await buildProductQuery(
       supabase,
       f,
       PRODUCT_LIST_SELECT,
-      true
+      true,
+      brands
     ).range(from, from + perPage - 1);
 
     if (error) throw error;
@@ -248,11 +288,13 @@ export const getProducts = cache(async function getProducts(
 
   try {
     const supabase = await createClient();
+    const brands = await getBrands();
     const { data, error } = await buildProductQuery(
       supabase,
       f,
       PRODUCT_LIST_SELECT,
-      false
+      false,
+      brands
     ).limit(limit);
     if (error) throw error;
 
@@ -438,20 +480,6 @@ export async function getRelatedProducts(p: Product, limit = 4) {
   return all.filter((x) => x.id !== p.id).slice(0, limit);
 }
 
-export async function getBrands(): Promise<Company[]> {
-  if (!isSupabaseConfigured) return MOCK_BRANDS as Company[];
-  try {
-    const supabase = await createClient();
-    const { data, error } = await supabase
-      .from("companies")
-      .select("id, name, slug, country, logo_url")
-      .order("name");
-    if (error) throw error;
-    return (data ?? []) as Company[];
-  } catch {
-    return MOCK_BRANDS as Company[];
-  }
-}
 
 export async function getReviews(productId: string): Promise<Review[]> {
   if (!isSupabaseConfigured) return [];

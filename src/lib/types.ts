@@ -126,6 +126,8 @@ export type ProductOption = {
   product_type: ProductType;
   msrp: number | null;
   market_price: number | null;
+  thumbnail_url?: string | null;
+  companies?: { id: string; name: string; slug: string; logo_url?: string | null } | null;
 };
 
 export type Review = {
