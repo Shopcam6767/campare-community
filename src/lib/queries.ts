@@ -82,6 +82,45 @@ export const getBrands = cache(async function getBrands(): Promise<Company[]> {
   }
 });
 
+export type BrandWithCount = Company & { product_count: number };
+
+/**
+ * แบรนด์ + จำนวนสินค้าที่ยังแสดงอยู่ของแต่ละแบรนด์ — ใช้กับตัวกรองหน้ารวมสินค้า
+ * นับที่ฐานข้อมูลด้วย embedded count ไม่ต้องลากสินค้าทุกแถวมานับในโค้ด
+ * แบรนด์ที่ไม่มีสินค้าเหลือจะถูกตัดออก จะได้ไม่มีตัวเลือกที่กดแล้วว่าง
+ */
+export const getBrandsWithCount = cache(async function getBrandsWithCount(): Promise<BrandWithCount[]> {
+  const fromMock = () => {
+    const counts = new Map<string, number>();
+    for (const p of MOCK_PRODUCTS) {
+      const slug = p.companies?.slug;
+      if (slug) counts.set(slug, (counts.get(slug) ?? 0) + 1);
+    }
+    return (MOCK_BRANDS as Company[]).map((b) => ({ ...b, product_count: counts.get(b.slug) ?? 0 }));
+  };
+
+  if (!isSupabaseConfigured) return fromMock();
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("companies")
+      .select("id, name, slug, country, logo_url, products(count)")
+      .eq("products.is_deleted", false)
+      .order("name");
+    if (error) throw error;
+
+    type Row = Company & { products: { count: number }[] | null };
+    return ((data ?? []) as unknown as Row[])
+      .map(({ products, ...b }) => ({ ...b, product_count: products?.[0]?.count ?? 0 }))
+      .filter((b) => b.product_count > 0);
+  } catch (err) {
+    console.error("getBrandsWithCount failed", err);
+    // นับไม่ได้ก็ยังต้องมีรายชื่อแบรนด์ให้กรอง — แสดงแบบไม่มีตัวเลข
+    const brands = await getBrands();
+    return brands.map((b) => ({ ...b, product_count: -1 }));
+  }
+});
+
 /**
  * แยกคำค้นหาและตัดอักขระที่ทำให้ตัวกรองของ PostgREST เพี้ยน
  * ตัดข้อความคั่นด้วย , และ () ออกเพื่อไม่ให้ถูกอ่านเป็นไวยากรณ์ของตัวกรอง

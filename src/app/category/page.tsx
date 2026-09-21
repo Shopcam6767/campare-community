@@ -4,7 +4,7 @@ import CategoryFilters from "@/components/category-filters";
 import ProductCard from "@/components/product-card";
 import SortSelect from "@/components/sort-select";
 import Pagination from "@/components/pagination";
-import { getBrands, getProductsPage, type ProductFilters } from "@/lib/queries";
+import { getBrandsWithCount, getProductsPage, type ProductFilters } from "@/lib/queries";
 import { PRODUCT_TYPE_LABEL, type ProductType } from "@/lib/types";
 
 export const metadata: Metadata = { title: "สินค้าทั้งหมด" };
@@ -47,7 +47,7 @@ export default async function CategoryPage({
 
   const [page, brands] = await Promise.all([
     getProductsPage(filters, Number(sp.page) || 1),
-    getBrands(),
+    getBrandsWithCount(),
   ]);
   const products = page.items;
 
