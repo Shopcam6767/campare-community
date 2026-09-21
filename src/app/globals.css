@@ -59,3 +59,51 @@ input[type="number"]::-webkit-outer-spin-button {
   background: var(--color-ink-200);
   border-radius: 999px;
 }
+
+/* ช่วงราคา 2 หัว (category-filters → PriceRange)
+   range 2 ตัววางซ้อน: ตัวแถบกดไม่ได้ กดได้เฉพาะหัวจับ */
+.price-range input[type="range"] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  margin: 0;
+  background: transparent;
+  pointer-events: none;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.price-range input[type="range"]::-webkit-slider-runnable-track {
+  background: transparent;
+  height: 100%;
+}
+.price-range input[type="range"]::-moz-range-track {
+  background: transparent;
+}
+.price-range input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  pointer-events: auto;
+  width: 20px;
+  height: 20px;
+  margin-top: 0;
+  border-radius: 999px;
+  background: #fff;
+  border: 5px solid var(--color-brand-400);
+  cursor: grab;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.2);
+}
+.price-range input[type="range"]::-moz-range-thumb {
+  pointer-events: auto;
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: #fff;
+  border: 5px solid var(--color-brand-400);
+  cursor: grab;
+}
+.price-range input[type="range"]:active::-webkit-slider-thumb {
+  cursor: grabbing;
+}
+.price-range input[type="range"]:focus-visible::-webkit-slider-thumb {
+  outline: 2px solid var(--color-brand-600);
+  outline-offset: 2px;
+}
