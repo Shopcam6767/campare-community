@@ -36,7 +36,11 @@ export default function CategoryFilters({ brands }: { brands: Company[] }) {
   const activeYear = params.get("year") ?? "";
 
   return (
-    <aside className="space-y-6 lg:sticky lg:top-24 lg:self-start">
+    <aside
+      // จอใหญ่: ตัวกรองมี scrollbar ของตัวเอง เลื่อนแยกจากรายการสินค้า
+      // ความสูงไม่เกินจอ (หัก header + ระยะ top-24 ออก) ไม่งั้นส่วนล่างตกขอบเลื่อนไม่ถึง
+      className="space-y-6 lg:sticky lg:top-24 lg:self-start lg:max-h-[calc(100vh-7.5rem)] lg:overflow-y-auto lg:overscroll-contain lg:pr-2 lg:pb-4 lg:[scrollbar-width:thin]"
+    >
       <div className="flex items-center justify-between">
         <h2 className="text-base font-bold">ตัวกรอง</h2>
         <button
