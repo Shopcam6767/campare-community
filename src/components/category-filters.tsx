@@ -7,15 +7,12 @@ import { formatPrice } from "@/lib/format";
 
 const TYPES = Object.keys(PRODUCT_TYPE_LABEL) as ProductType[];
 const PRICE_FLOOR = 0;
-const PRICE_CEIL = 150000;
+const PRICE_CEIL = 250000; // กล้องแพงสุดในระบบราว 2.2 แสน (Canon EOS R1)
+const PRICE_STEP = 1000;
 
 export default function CategoryFilters({ brands }: { brands: Company[] }) {
   const router = useRouter();
   const params = useSearchParams();
-
-  const [maxPrice, setMaxPrice] = useState(
-    Number(params.get("max") ?? PRICE_CEIL)
-  );
 
   const push = useCallback(
     (mutate: (p: URLSearchParams) => void) => {
@@ -36,7 +33,11 @@ export default function CategoryFilters({ brands }: { brands: Company[] }) {
   const activeYear = params.get("year") ?? "";
 
   return (
-    <aside className="space-y-6 lg:sticky lg:top-24 lg:self-start">
+    <aside
+      // จอใหญ่: ตัวกรองมี scrollbar ของตัวเอง เลื่อนแยกจากรายการสินค้า
+      // ความสูงไม่เกินจอ (หัก header + ระยะ top-24 ออก) ไม่งั้นส่วนล่างตกขอบเลื่อนไม่ถึง
+      className="space-y-6 lg:sticky lg:top-24 lg:self-start lg:max-h-[calc(100vh-7.5rem)] lg:overflow-y-auto lg:overscroll-contain lg:pr-2 lg:pb-4 lg:[scrollbar-width:thin]"
+    >
       <div className="flex items-center justify-between">
         <h2 className="text-base font-bold">ตัวกรอง</h2>
         <button
@@ -48,37 +49,20 @@ export default function CategoryFilters({ brands }: { brands: Company[] }) {
         </button>
       </div>
 
-      {/* ราคา */}
-      <section className="rounded-card border border-ink-100 p-4">
-        <p className="text-sm font-semibold">ราคา</p>
-        <input
-          type="range"
-          min={PRICE_FLOOR}
-          max={PRICE_CEIL}
-          step={1000}
-          value={maxPrice}
-          onChange={(e) => setMaxPrice(Number(e.target.value))}
-          onMouseUp={() =>
-            push((p) => {
-              if (maxPrice >= PRICE_CEIL) p.delete("max");
-              else p.set("max", String(maxPrice));
-            })
-          }
-          onTouchEnd={() =>
-            push((p) => {
-              if (maxPrice >= PRICE_CEIL) p.delete("max");
-              else p.set("max", String(maxPrice));
-            })
-          }
-          className="mt-3 w-full accent-brand-400"
-        />
-        <div className="mt-1 flex justify-between text-xs text-ink-500">
-          <span>{formatPrice(PRICE_FLOOR)}</span>
-          <span className="font-medium text-brand-600">
-            ไม่เกิน {formatPrice(maxPrice)}
-          </span>
-        </div>
-      </section>
+      {/* ราคา — key ผูกกับ URL เพื่อให้ช่องรีเซ็ตตามเวลากด "ล้างทั้งหมด" */}
+      <PriceRange
+        key={`${params.get("min") ?? ""}-${params.get("max") ?? ""}`}
+        initialMin={Number(params.get("min") ?? PRICE_FLOOR)}
+        initialMax={Number(params.get("max") ?? PRICE_CEIL)}
+        onApply={(lo, hi) =>
+          push((p) => {
+            if (lo <= PRICE_FLOOR) p.delete("min");
+            else p.set("min", String(lo));
+            if (hi >= PRICE_CEIL) p.delete("max");
+            else p.set("max", String(hi));
+          })
+        }
+      />
 
       {/* สถานะการผลิต */}
       <section className="rounded-card border border-ink-100 p-4">
@@ -225,5 +209,120 @@ export default function CategoryFilters({ brands }: { brands: Company[] }) {
         </div>
       </section>
     </aside>
+  );
+}
+
+/**
+ * ช่วงราคาแบบ 2 หัว — ลากได้ทั้งซ้าย (ต่ำสุด) และขวา (สูงสุด) หรือพิมพ์ตัวเลขในช่อง
+ * กด "ยืนยัน" ถึงจะกรอง ไม่ยิงค้นหาทุกครั้งที่ลาก
+ *
+ * ทำจาก input[type=range] 2 ตัววางซ้อนกัน ตัวแถบปิด pointer-events
+ * ให้กดได้เฉพาะหัวจับ (สไตล์อยู่ใน globals.css → .price-range)
+ */
+function PriceRange({
+  initialMin,
+  initialMax,
+  onApply,
+}: {
+  initialMin: number;
+  initialMax: number;
+  onApply: (min: number, max: number) => void;
+}) {
+  const clamp = (n: number) =>
+    Math.min(PRICE_CEIL, Math.max(PRICE_FLOOR, Number.isFinite(n) ? n : 0));
+  const [lo, setLo] = useState(clamp(initialMin));
+  const [hi, setHi] = useState(clamp(initialMax));
+
+  // หัวซ้ายห้ามเลยหัวขวา และกลับกัน
+  const setLow = (n: number) => setLo(Math.min(clamp(n), hi));
+  const setHigh = (n: number) => setHi(Math.max(clamp(n), lo));
+
+  const pct = (n: number) => ((n - PRICE_FLOOR) / (PRICE_CEIL - PRICE_FLOOR)) * 100;
+
+  return (
+    <section className="rounded-card border border-ink-100 p-4">
+      <p className="text-sm font-semibold">ราคา</p>
+
+      <div className="mt-3 flex items-center gap-2">
+        <input
+          type="number"
+          inputMode="numeric"
+          aria-label="ราคาต่ำสุด"
+          value={lo}
+          min={PRICE_FLOOR}
+          max={hi}
+          step={PRICE_STEP}
+          onChange={(e) => setLo(Number(e.target.value))}
+          onBlur={() => setLow(lo)}
+          className="w-full rounded-lg border border-ink-200 px-2 py-1.5 text-center text-sm outline-none focus:border-brand-400"
+        />
+        <span className="text-ink-400">–</span>
+        <input
+          type="number"
+          inputMode="numeric"
+          aria-label="ราคาสูงสุด"
+          value={hi}
+          min={lo}
+          max={PRICE_CEIL}
+          step={PRICE_STEP}
+          onChange={(e) => setHi(Number(e.target.value))}
+          onBlur={() => setHigh(hi)}
+          className="w-full rounded-lg border border-ink-200 px-2 py-1.5 text-center text-sm outline-none focus:border-brand-400"
+        />
+      </div>
+
+      <div className="price-range relative mt-4 h-5">
+        {/* แถบพื้น + ช่วงที่เลือก */}
+        <div className="absolute inset-x-0 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-ink-100" />
+        <div
+          className="absolute top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-brand-400"
+          // หัวจับกว้าง 20px จุดกึ่งกลางเลยเดินได้แค่ 10px → (100% - 10px)
+          style={{
+            left: `calc(10px + (100% - 20px) * ${pct(lo) / 100})`,
+            right: `calc(10px + (100% - 20px) * ${1 - pct(hi) / 100})`,
+          }}
+        />
+        <input
+          type="range"
+          aria-label="ลากเพื่อตั้งราคาต่ำสุด"
+          min={PRICE_FLOOR}
+          max={PRICE_CEIL}
+          step={PRICE_STEP}
+          value={lo}
+          onChange={(e) => setLow(Number(e.target.value))}
+          // หัวซ้ายชนขวาสุดแล้ว ยกขึ้นมาข้างบนไม่งั้นจะลากกลับไม่ได้
+          style={{ zIndex: lo >= PRICE_CEIL - PRICE_STEP ? 5 : 3 }}
+        />
+        <input
+          type="range"
+          aria-label="ลากเพื่อตั้งราคาสูงสุด"
+          min={PRICE_FLOOR}
+          max={PRICE_CEIL}
+          step={PRICE_STEP}
+          value={hi}
+          onChange={(e) => setHigh(Number(e.target.value))}
+          style={{ zIndex: 4 }}
+        />
+      </div>
+
+      <div className="mt-1 flex justify-between text-xs text-ink-500">
+        <span>{formatPrice(lo)}</span>
+        <span>{hi >= PRICE_CEIL ? `${formatPrice(PRICE_CEIL)}+` : formatPrice(hi)}</span>
+      </div>
+
+      <button
+        type="button"
+        onClick={() => {
+          const a = clamp(Math.min(lo, hi));
+          const b = clamp(Math.max(lo, hi));
+          setLo(a);
+          setHi(b);
+          onApply(a, b);
+        }}
+        className="mt-3 w-full rounded-full border border-brand-400 py-2 text-sm font-medium text-brand-600 transition hover:bg-brand-400 hover:text-white"
+      >
+        ยืนยัน
+      </button>
+    </section>
   );
 }
