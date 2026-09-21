@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
 import ProductCard from "@/components/product-card";
-import ProductThumb from "@/components/product-thumb";
+import ProductImageZoom from "@/components/product-image-zoom";
 import AddToCartButton from "@/components/cart/add-to-cart-button";
 import StarRating from "@/components/star-rating";
 import WishlistButton from "@/components/wishlist-button";
@@ -80,15 +80,13 @@ export default async function ProductPage({ params }: { params: Params }) {
       </nav>
 
       <div className="mt-6 grid gap-10 lg:grid-cols-[1.1fr_1fr]">
-        {/* รูป */}
-        <div className="relative aspect-4/3 overflow-hidden rounded-card border border-ink-100 bg-ink-50">
-          <ProductThumb
-            src={product.thumbnail_url}
-            alt={product.name}
-            priority
-            sizes="(max-width: 1024px) 100vw, 55vw"
-          />
-        </div>
+        {/* รูปพร้อมระบบซูมเข้า-ออก */}
+        <ProductImageZoom
+          src={product.thumbnail_url}
+          alt={product.name}
+          priority
+          sizes="(max-width: 1024px) 100vw, 55vw"
+        />
 
         {/* ข้อมูลหลัก */}
         <div>
