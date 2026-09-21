@@ -29,6 +29,7 @@ export default function ProductThumb({
   slug,
   sizes,
   priority = false,
+  fit = "cover",
   className = "",
 }: {
   src: string | null | undefined;
@@ -36,6 +37,8 @@ export default function ProductThumb({
   slug?: string;
   sizes?: string;
   priority?: boolean;
+  /** contain = เห็นสินค้าทั้งตัว ไม่ถูกครอป (ใช้กับการ์ด) */
+  fit?: "cover" | "contain";
   className?: string;
 }) {
   const resolvedSrc = getProductImageUrl(slug, src);
@@ -48,7 +51,7 @@ export default function ProductThumb({
         fill
         priority={priority}
         sizes={sizes}
-        className={`object-cover ${className}`}
+        className={`${fit === "contain" ? "object-contain p-3" : "object-cover"} ${className}`}
       />
     );
   }

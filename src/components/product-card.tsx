@@ -15,12 +15,13 @@ export default function ProductCard({ product }: { product: Product }) {
       </div>
 
       <Link href={`/product/${product.slug}`} className="block">
-        <div className="relative aspect-4/3 overflow-hidden bg-ink-50">
+        <div className="relative aspect-4/3 overflow-hidden bg-white">
           <ProductThumb
             src={product.thumbnail_url}
             alt={product.name}
             slug={product.slug}
-            sizes="(max-width: 768px) 50vw, 25vw"
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 16vw"
+            fit="contain"
             className="transition duration-300 group-hover:scale-105"
           />
           {product.status === "discontinued" && (

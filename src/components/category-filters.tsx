@@ -1,8 +1,11 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { PRODUCT_TYPE_LABEL, type Company, type ProductType } from "@/lib/types";
+
+/** product_count = -1 แปลว่านับไม่ได้ ให้ซ่อนตัวเลข */
+type Brand = Company & { product_count?: number };
 import { formatPrice } from "@/lib/format";
 
 const TYPES = Object.keys(PRODUCT_TYPE_LABEL) as ProductType[];
@@ -10,18 +13,21 @@ const PRICE_FLOOR = 0;
 const PRICE_CEIL = 250000; // กล้องแพงสุดในระบบราว 2.2 แสน (Canon EOS R1)
 const PRICE_STEP = 1000;
 
-export default function CategoryFilters({ brands }: { brands: Company[] }) {
+export default function CategoryFilters({ brands }: { brands: Brand[] }) {
   const router = useRouter();
   const params = useSearchParams();
 
   const push = useCallback(
-    (mutate: (p: URLSearchParams) => void) => {
+    (mutate: (p: URLSearchParams) => void, opts?: { replace?: boolean }) => {
       const next = new URLSearchParams(params.toString());
       mutate(next);
       // เปลี่ยนตัวกรองแล้วต้องกลับไปหน้า 1 เสมอ
       // ไม่งั้นค้างอยู่หน้า 120 ของผลลัพธ์เดิมที่อาจมีแค่ 3 หน้า
       next.delete("page");
-      router.push(`/category?${next.toString()}`);
+      const url = `/category?${next.toString()}`;
+      // replace = ไม่สร้างประวัติทุกครั้งที่ลาก (กด Back แล้วไม่ต้องย้อนทีละขยับ)
+      if (opts?.replace) router.replace(url, { scroll: false });
+      else router.push(url);
     },
     [params, router]
   );
@@ -49,9 +55,8 @@ export default function CategoryFilters({ brands }: { brands: Company[] }) {
         </button>
       </div>
 
-      {/* ราคา — key ผูกกับ URL เพื่อให้ช่องรีเซ็ตตามเวลากด "ล้างทั้งหมด" */}
+      {/* ราคา — กรองเรียลไทม์ขณะลาก */}
       <PriceRange
-        key={`${params.get("min") ?? ""}-${params.get("max") ?? ""}`}
         initialMin={Number(params.get("min") ?? PRICE_FLOOR)}
         initialMax={Number(params.get("max") ?? PRICE_CEIL)}
         onApply={(lo, hi) =>
@@ -60,7 +65,7 @@ export default function CategoryFilters({ brands }: { brands: Company[] }) {
             else p.set("min", String(lo));
             if (hi >= PRICE_CEIL) p.delete("max");
             else p.set("max", String(hi));
-          })
+          }, { replace: true })
         }
       />
 
@@ -171,7 +176,12 @@ export default function CategoryFilters({ brands }: { brands: Company[] }) {
                 }
                 className="accent-brand-400"
               />
-              {b.name}
+              <span className="flex-1">{b.name}</span>
+              {b.product_count !== undefined && b.product_count >= 0 && (
+                <span className="text-xs tabular-nums text-ink-400">
+                  ({b.product_count.toLocaleString("th-TH")})
+                </span>
+              )}
             </label>
           ))}
         </div>
@@ -214,11 +224,14 @@ export default function CategoryFilters({ brands }: { brands: Company[] }) {
 
 /**
  * ช่วงราคาแบบ 2 หัว — ลากได้ทั้งซ้าย (ต่ำสุด) และขวา (สูงสุด) หรือพิมพ์ตัวเลขในช่อง
- * กด "ยืนยัน" ถึงจะกรอง ไม่ยิงค้นหาทุกครั้งที่ลาก
+ * ผลลัพธ์อัปเดตเรียลไทม์ขณะลาก (หน่วงสั้น ๆ ไม่ยิงค้นหาทุกพิกเซล)
  *
  * ทำจาก input[type=range] 2 ตัววางซ้อนกัน ตัวแถบปิด pointer-events
  * ให้กดได้เฉพาะหัวจับ (สไตล์อยู่ใน globals.css → .price-range)
  */
+const DRAG_DELAY_MS = 250; // ลาก: อัปเดตถี่พอให้รู้สึกเรียลไทม์
+const TYPE_DELAY_MS = 700; // พิมพ์: รอให้พิมพ์จบก่อน ไม่งั้นกรองตั้งแต่เลขตัวแรก
+
 function PriceRange({
   initialMin,
   initialMax,
@@ -232,12 +245,46 @@ function PriceRange({
     Math.min(PRICE_CEIL, Math.max(PRICE_FLOOR, Number.isFinite(n) ? n : 0));
   const [lo, setLo] = useState(clamp(initialMin));
   const [hi, setHi] = useState(clamp(initialMax));
+  const [delay, setDelay] = useState(DRAG_DELAY_MS);
+  const dragging = useRef(false);
+
+  // ค่าจาก URL เปลี่ยนจากที่อื่น (เช่นกด "ล้างทั้งหมด") → ตามให้ตรง
+  // แต่ถ้ากำลังลากอยู่ ห้ามทับ ไม่งั้นหัวจับจะเด้งกลับกลางมือ
+  useEffect(() => {
+    if (dragging.current) return;
+    setLo(clamp(initialMin));
+    setHi(clamp(initialMax));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialMin, initialMax]);
+
+  // ค่าเปลี่ยน → รอสักครู่แล้วค่อยกรอง
+  useEffect(() => {
+    const a = clamp(Math.min(lo, hi));
+    const b = clamp(Math.max(lo, hi));
+    if (a === clamp(initialMin) && b === clamp(initialMax)) return;
+    const t = setTimeout(() => onApply(a, b), delay);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lo, hi]);
 
   // หัวซ้ายห้ามเลยหัวขวา และกลับกัน
   const setLow = (n: number) => setLo(Math.min(clamp(n), hi));
   const setHigh = (n: number) => setHi(Math.max(clamp(n), lo));
 
   const pct = (n: number) => ((n - PRICE_FLOOR) / (PRICE_CEIL - PRICE_FLOOR)) * 100;
+
+  const dragProps = {
+    onPointerDown: () => {
+      dragging.current = true;
+      setDelay(DRAG_DELAY_MS);
+    },
+    onPointerUp: () => {
+      dragging.current = false;
+    },
+    onPointerCancel: () => {
+      dragging.current = false;
+    },
+  };
 
   return (
     <section className="rounded-card border border-ink-100 p-4">
@@ -252,7 +299,10 @@ function PriceRange({
           min={PRICE_FLOOR}
           max={hi}
           step={PRICE_STEP}
-          onChange={(e) => setLo(Number(e.target.value))}
+          onChange={(e) => {
+            setDelay(TYPE_DELAY_MS);
+            setLo(Number(e.target.value));
+          }}
           onBlur={() => setLow(lo)}
           className="w-full rounded-lg border border-ink-200 px-2 py-1.5 text-center text-sm outline-none focus:border-brand-400"
         />
@@ -265,7 +315,10 @@ function PriceRange({
           min={lo}
           max={PRICE_CEIL}
           step={PRICE_STEP}
-          onChange={(e) => setHi(Number(e.target.value))}
+          onChange={(e) => {
+            setDelay(TYPE_DELAY_MS);
+            setHi(Number(e.target.value));
+          }}
           onBlur={() => setHigh(hi)}
           className="w-full rounded-lg border border-ink-200 px-2 py-1.5 text-center text-sm outline-none focus:border-brand-400"
         />
@@ -290,6 +343,7 @@ function PriceRange({
           step={PRICE_STEP}
           value={lo}
           onChange={(e) => setLow(Number(e.target.value))}
+          {...dragProps}
           // หัวซ้ายชนขวาสุดแล้ว ยกขึ้นมาข้างบนไม่งั้นจะลากกลับไม่ได้
           style={{ zIndex: lo >= PRICE_CEIL - PRICE_STEP ? 5 : 3 }}
         />
@@ -301,6 +355,7 @@ function PriceRange({
           step={PRICE_STEP}
           value={hi}
           onChange={(e) => setHigh(Number(e.target.value))}
+          {...dragProps}
           style={{ zIndex: 4 }}
         />
       </div>
@@ -309,20 +364,6 @@ function PriceRange({
         <span>{formatPrice(lo)}</span>
         <span>{hi >= PRICE_CEIL ? `${formatPrice(PRICE_CEIL)}+` : formatPrice(hi)}</span>
       </div>
-
-      <button
-        type="button"
-        onClick={() => {
-          const a = clamp(Math.min(lo, hi));
-          const b = clamp(Math.max(lo, hi));
-          setLo(a);
-          setHi(b);
-          onApply(a, b);
-        }}
-        className="mt-3 w-full rounded-full border border-brand-400 py-2 text-sm font-medium text-brand-600 transition hover:bg-brand-400 hover:text-white"
-      >
-        ยืนยัน
-      </button>
     </section>
   );
 }

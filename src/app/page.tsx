@@ -134,8 +134,8 @@ export default async function HomePage() {
             ดูทั้งหมด →
           </Link>
         </div>
-        <div className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-          {recommended.slice(0, 8).map((p) => (
+        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+          {recommended.slice(0, 12).map((p) => (
             <ProductCard key={p.id} product={p} />
           ))}
         </div>
@@ -152,8 +152,8 @@ export default async function HomePage() {
             ดูทั้งหมด →
           </Link>
         </div>
-        <div className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-          {newest.slice(0, 4).map((p) => (
+        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+          {newest.slice(0, 6).map((p) => (
             <ProductCard key={p.id} product={p} />
           ))}
         </div>
