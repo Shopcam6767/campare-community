@@ -30,6 +30,12 @@ export default async function LoginPage({
         </p>
       )}
 
+      {sp.error === "suspended" && (
+        <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+          บัญชีนี้ถูกระงับการใช้งาน ระบบออกจากระบบให้แล้ว หากคิดว่าผิดพลาดติดต่อผู้ดูแลระบบ
+        </p>
+      )}
+
       <div className="mt-6">
         <LoginForm next={next} />
       </div>
