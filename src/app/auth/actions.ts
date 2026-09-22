@@ -32,6 +32,12 @@ export async function login(
     };
   }
 
+  const { data: active } = await supabase.rpc("is_account_active");
+  if (active === false) {
+    await supabase.auth.signOut();
+    return { error: "บัญชีนี้ถูกระงับการใช้งาน ติดต่อผู้ดูแลระบบ" };
+  }
+
   revalidatePath("/", "layout");
   redirect(next);
 }

@@ -44,6 +44,22 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;
+
+  // บัญชีถูกระงับ → เตะออกทันทีที่ขอหน้าใหม่ / กดปุ่ม / ส่งฟอร์ม
+  // (ทุก request รวมถึงการเปลี่ยนหน้าแบบไม่รีเฟรชและ server action ผ่านตรงนี้หมด)
+  if (user && !pathname.startsWith("/login")) {
+    const { data: active } = await supabase.rpc("is_account_active");
+    if (active === false) {
+      await supabase.auth.signOut(); // ล้าง cookie ผ่าน setAll → อยู่ใน response
+      const url = request.nextUrl.clone();
+      url.pathname = "/login";
+      url.search = "?error=suspended";
+      const redirect = NextResponse.redirect(url);
+      response.cookies.getAll().forEach((c) => redirect.cookies.set(c));
+      return redirect;
+    }
+  }
+
   const needsAuth = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p));
 
   if (!user && needsAuth) {

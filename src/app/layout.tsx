@@ -3,6 +3,7 @@ import { IBM_Plex_Sans_Thai } from "next/font/google";
 import "./globals.css";
 import SiteHeader from "@/components/site-header";
 import SiteFooter from "@/components/site-footer";
+import AccountStatusWatcher from "@/components/account-status-watcher";
 
 const plex = IBM_Plex_Sans_Thai({
   subsets: ["thai", "latin"],
@@ -29,6 +30,7 @@ export default function RootLayout({
         <SiteHeader />
         <main className="flex-1">{children}</main>
         <SiteFooter />
+        <AccountStatusWatcher />
       </body>
     </html>
   );
