@@ -110,7 +110,7 @@ export default function CategoryFilters({ brands }: { brands: Brand[] }) {
               e.target.value ? p.set("year", e.target.value) : p.delete("year")
             )
           }
-          className="mt-3 w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm outline-none focus:border-brand-400"
+          className="mt-3 w-full rounded-lg border border-ink-200 bg-surface px-3 py-2 text-sm outline-none focus:border-brand-400"
         >
           <option value="">ทุกปี</option>
           <option value="2020">ปี 2020 ขึ้นไป</option>

@@ -118,7 +118,7 @@ export default function ProductPicker({
       {hint && <p className="mt-1 text-xs text-ink-400">{hint}</p>}
 
       {open && !selected && (
-        <ul className="absolute z-30 mt-1 max-h-72 w-full overflow-y-auto rounded-lg border border-ink-200 bg-white shadow-lg">
+        <ul className="absolute z-30 mt-1 max-h-72 w-full overflow-y-auto rounded-lg border border-ink-200 bg-surface shadow-lg">
           {loading && (
             <li className="px-3 py-2.5 text-sm text-ink-400">กำลังค้นหา…</li>
           )}

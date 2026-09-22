@@ -61,13 +61,13 @@ export default function ReviewForm({
         <div className="mt-4 flex flex-wrap justify-center gap-2">
           <a
             href="#listings"
-            className="rounded-lg border border-ink-200 bg-white px-4 py-2 text-xs font-semibold text-ink-700 transition hover:border-brand-300 hover:text-brand-600"
+            className="rounded-lg border border-ink-200 bg-surface px-4 py-2 text-xs font-semibold text-ink-700 transition hover:border-brand-300 hover:text-brand-600"
           >
             ดูประกาศขายมือสองของรุ่นนี้
           </a>
           <Link
             href="/profile?tab=purchase"
-            className="rounded-lg border border-ink-200 bg-white px-4 py-2 text-xs font-semibold text-ink-700 transition hover:border-brand-300 hover:text-brand-600"
+            className="rounded-lg border border-ink-200 bg-surface px-4 py-2 text-xs font-semibold text-ink-700 transition hover:border-brand-300 hover:text-brand-600"
           >
             ตรวจสอบประวัติการซื้อของคุณ
           </Link>

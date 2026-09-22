@@ -68,7 +68,7 @@ export default async function ComparePage({
         <table className="w-full min-w-3xl border-separate border-spacing-0">
           <thead>
             <tr>
-              <th className="sticky left-0 z-10 w-44 bg-white p-3 text-left align-top text-sm text-ink-500">
+              <th className="sticky left-0 z-10 w-44 bg-surface p-3 text-left align-top text-sm text-ink-500">
                 รายการ
               </th>
               {products.map((p) => (
@@ -168,7 +168,7 @@ function FragmentGroup({
         const differs = new Set(values).size > 1;
         return (
           <tr key={row.label} className="text-sm">
-            <td className="sticky left-0 z-10 border-b border-ink-100 bg-white px-3 py-2.5 text-ink-500">
+            <td className="sticky left-0 z-10 border-b border-ink-100 bg-surface px-3 py-2.5 text-ink-500">
               {row.label}
             </td>
             {values.map((v, i) => (

@@ -207,7 +207,7 @@ export default function SearchBar() {
 
       {/* Autocomplete Dropdown List */}
       {showDropdown && (
-        <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-ink-200/80 bg-white shadow-2xl backdrop-blur-md sm:min-w-[340px]">
+        <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-ink-200/80 bg-surface shadow-2xl backdrop-blur-md sm:min-w-[340px]">
           {loading && items.length === 0 ? (
             <div className="flex items-center justify-center gap-2 py-6 text-sm text-ink-400">
               <svg

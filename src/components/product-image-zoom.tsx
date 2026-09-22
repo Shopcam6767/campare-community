@@ -299,7 +299,7 @@ export default function ProductImageZoom({
         </div>
 
         {/* ป้ายกำกับบนขวา: แนะนำการคลิกเพื่อซูม */}
-        <div className="pointer-events-none absolute top-3 right-3 flex items-center gap-1.5 rounded-full bg-ink-900/70 px-2.5 py-1 text-xs font-medium text-white backdrop-blur-md opacity-90 transition-opacity group-hover:opacity-100 sm:opacity-0 sm:group-hover:opacity-100">
+        <div className="pointer-events-none absolute top-3 right-3 flex items-center gap-1.5 rounded-full bg-neutral-900/70 px-2.5 py-1 text-xs font-medium text-white backdrop-blur-md opacity-90 transition-opacity group-hover:opacity-100 sm:opacity-0 sm:group-hover:opacity-100">
           <svg viewBox="0 0 24 24" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="2">
             <circle cx="11" cy="11" r="7" />
             <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-4.35-4.35" />
@@ -382,7 +382,7 @@ export default function ProductImageZoom({
         >
           {/* Header แถบบน */}
           <div
-            className="flex shrink-0 items-center justify-between border-b border-white/10 bg-ink-900/60 px-4 py-3 backdrop-blur-md"
+            className="flex shrink-0 items-center justify-between border-b border-white/10 bg-neutral-900/60 px-4 py-3 backdrop-blur-md"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center gap-2">
@@ -452,7 +452,7 @@ export default function ProductImageZoom({
 
           {/* Toolbar ด้านล่างสำหรับควบคุมการซูมแบบครบวงจร */}
           <div
-            className="flex shrink-0 flex-col items-center justify-center gap-2 border-t border-white/10 bg-ink-900/70 px-4 py-3 backdrop-blur-md"
+            className="flex shrink-0 flex-col items-center justify-center gap-2 border-t border-white/10 bg-neutral-900/70 px-4 py-3 backdrop-blur-md"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4">
