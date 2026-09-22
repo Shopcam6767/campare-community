@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { cartTotals, getCartItems } from "@/lib/cart";
+import { formatAddress, readAddress, validateAddress } from "@/lib/thai-address";
 
 export type CheckoutState = { error?: string };
 
@@ -37,12 +38,21 @@ export async function placeOrder(
   if (!isSupabaseConfigured) return { error: "ยังไม่ได้ตั้งค่า Supabase" };
 
   const method = String(formData.get("payment_method") ?? "") as PaymentMethod;
-  const address = String(formData.get("address") ?? "").trim();
-
   if (!PAYMENT_METHODS.includes(method))
     return { error: "เลือกวิธีชำระเงินก่อน" };
-  if (address.length < 10)
-    return { error: "กรอกที่อยู่จัดส่งให้ครบถ้วน (อย่างน้อย 10 ตัวอักษร)" };
+
+  // ที่อยู่แยกช่อง → ตรวจทีละช่อง แล้วรวมเป็นข้อความเดียวเก็บในคอลัมน์ shipping_address เดิม
+  const ship = readAddress(formData, "ship_");
+  const shipError = validateAddress(ship, "ที่อยู่จัดส่ง");
+  if (shipError) return { error: shipError };
+
+  let address = formatAddress(ship);
+  if (formData.get("same_billing") !== "on") {
+    const bill = readAddress(formData, "bill_");
+    const billError = validateAddress(bill, "ที่อยู่ออกใบเสร็จ");
+    if (billError) return { error: billError };
+    address += `\n\n[ที่อยู่ออกใบเสร็จ]\n${formatAddress(bill)}`;
+  }
 
   const supabase = await createClient();
   const {
