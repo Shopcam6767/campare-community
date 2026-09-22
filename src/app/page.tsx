@@ -32,7 +32,7 @@ export default async function HomePage() {
       <section className="border-b border-ink-100 bg-linear-to-b from-brand-50 to-white">
         <div className="mx-auto grid max-w-7xl gap-8 px-4 py-14 lg:grid-cols-2 lg:items-center">
           <div>
-            <p className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-xs font-medium text-brand-700 ring-1 ring-brand-200">
+            <p className="inline-flex items-center gap-2 rounded-full bg-surface px-3 py-1 text-xs font-medium text-brand-700 ring-1 ring-brand-200">
               เปรียบเทียบได้ 2–4 รุ่นพร้อมกัน
             </p>
             <h1 className="mt-4 text-3xl font-bold leading-tight sm:text-4xl">
@@ -134,8 +134,8 @@ export default async function HomePage() {
             ดูทั้งหมด →
           </Link>
         </div>
-        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-          {recommended.slice(0, 12).map((p) => (
+        <div className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+          {recommended.slice(0, 8).map((p) => (
             <ProductCard key={p.id} product={p} />
           ))}
         </div>
@@ -152,8 +152,8 @@ export default async function HomePage() {
             ดูทั้งหมด →
           </Link>
         </div>
-        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-          {newest.slice(0, 6).map((p) => (
+        <div className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+          {newest.slice(0, 4).map((p) => (
             <ProductCard key={p.id} product={p} />
           ))}
         </div>

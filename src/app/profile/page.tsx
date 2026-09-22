@@ -75,7 +75,7 @@ export default async function ProfilePage({
             <p className="mt-3 font-semibold">{profile?.display_name}</p>
             <p className="text-xs text-ink-500">{profile?.email}</p>
             {profile?.role === "admin" && (
-              <span className="mt-2 rounded-full bg-ink-800 px-2.5 py-0.5 text-[11px] text-white">
+              <span className="mt-2 rounded-full bg-neutral-800 px-2.5 py-0.5 text-[11px] text-white">
                 ผู้ดูแลระบบ
               </span>
             )}

@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* dark: ใช้ได้ทั้ง class "dark" บน <html> (ปุ่มสลับธีม) */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   /* Shopcam palette — accent ส้ม #F5A623 */
   --color-brand-50: #fff8ec;
@@ -27,6 +30,57 @@
   --font-sans: var(--font-plex), ui-sans-serif, system-ui, sans-serif;
 
   --radius-card: 14px;
+
+  /* พื้นผิวการ์ด/ช่องกรอก — ขาวในโหมดสว่าง เทาเข้มในโหมดมืด
+     ใช้ bg-surface แทน bg-white ทุกที่ที่เป็น "พื้นหลัง" (ไม่ใช่รูปสินค้า) */
+  --color-surface: #ffffff;
+}
+
+/* =====================================================================
+   Dark mode — สลับค่าสีในตัวแปรแทนการเติม dark: ทุก class
+   ink กลับด้าน (50 = เข้ม, 900 = สว่าง) → text-ink-900 / bg-ink-50 / border-ink-100
+   ที่ใช้อยู่ทั้งเว็บเปลี่ยนตามเองโดยไม่ต้องแก้ component
+   ===================================================================== */
+.dark {
+  color-scheme: dark;
+
+  --color-surface: #17171c;
+
+  --color-ink-50: #1f1f26;
+  --color-ink-100: #2a2a33;
+  --color-ink-200: #383842;
+  --color-ink-300: #4d4d59;
+  --color-ink-400: #7d7d8a;
+  --color-ink-500: #a0a0ad;
+  --color-ink-600: #bcbcc7;
+  --color-ink-700: #d2d2da;
+  --color-ink-800: #e5e5eb;
+  --color-ink-900: #f3f3f6;
+
+  /* ส้มพื้นหลังอ่อน → ส้มเข้มจาง ๆ, ส้มตัวอักษร → สว่างขึ้นให้อ่านออกบนพื้นมืด
+     400/500 (ปุ่มหลัก) คงเดิม */
+  --color-brand-50: #2b2012;
+  --color-brand-100: #3a2b14;
+  --color-brand-200: #5c4318;
+  --color-brand-300: #8a611c;
+  --color-brand-600: #ffb84d;
+  --color-brand-700: #ffc76e;
+  --color-brand-800: #ffd592;
+  --color-brand-900: #ffe3b8;
+
+  /* กล่องแจ้งเตือนแดง/เขียว */
+  --color-red-50: #3a1719;
+  --color-red-100: #4d1c1f;
+  --color-red-300: #7f2a2f;
+  --color-red-700: #fca5a5;
+  --color-red-800: #fecaca;
+  --color-red-900: #fee2e2;
+  --color-green-50: #10291a;
+  --color-green-100: #153620;
+  --color-green-300: #25613a;
+  --color-green-700: #86efac;
+  --color-green-800: #bbf7d0;
+  --color-green-900: #dcfce7;
 }
 
 :root {
@@ -35,7 +89,7 @@
 
 html,
 body {
-  background: #ffffff;
+  background: var(--color-surface);
   color: var(--color-ink-900);
 }
 

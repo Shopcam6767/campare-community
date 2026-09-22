@@ -204,7 +204,7 @@ function Decision({
         <input type="hidden" name="decision" value="approved" />
         <button
           type="submit"
-          className="rounded-lg bg-green-600 px-4 py-2 text-xs font-semibold text-white hover:bg-green-700"
+          className="rounded-lg bg-green-600 px-4 py-2 text-xs font-semibold text-white hover:bg-green-500"
         >
           อนุมัติ
         </button>

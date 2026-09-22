@@ -69,7 +69,7 @@ export default function WishlistTarget({
           inputMode="numeric"
           defaultValue={currentTarget ?? ""}
           placeholder="เช่น 60000"
-          className="min-w-0 flex-1 rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm outline-none focus:border-brand-400"
+          className="min-w-0 flex-1 rounded-lg border border-ink-200 bg-surface px-3 py-2 text-sm outline-none focus:border-brand-400"
         />
         <Save />
       </form>
