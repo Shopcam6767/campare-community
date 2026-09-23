@@ -1,16 +1,23 @@
 -- Wallet ledger for the university demo. Money is represented in satang (numeric(12,2)).
 -- Never update wallet_accounts directly from the client; all balance movements use RPCs below.
 
-create type wallet_topup_status as enum ('pending', 'paid', 'expired', 'failed');
-create type wallet_entry_type as enum ('topup', 'purchase', 'refund', 'seller_hold', 'seller_payout');
+do $$
+begin
+  if not exists (select 1 from pg_type where typname = 'wallet_topup_status') then
+    create type wallet_topup_status as enum ('pending', 'paid', 'expired', 'failed');
+  end if;
+  if not exists (select 1 from pg_type where typname = 'wallet_entry_type') then
+    create type wallet_entry_type as enum ('topup', 'purchase', 'refund', 'seller_hold', 'seller_payout');
+  end if;
+end $$;
 
-create table wallet_accounts (
+create table if not exists wallet_accounts (
   user_id uuid primary key references profiles(id) on delete cascade,
   available_balance numeric(12,2) not null default 0 check (available_balance >= 0),
   updated_at timestamptz not null default now()
 );
 
-create table wallet_topups (
+create table if not exists wallet_topups (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references profiles(id) on delete cascade,
   provider text not null default 'kbank_sandbox',
@@ -23,7 +30,7 @@ create table wallet_topups (
   created_at timestamptz not null default now()
 );
 
-create table wallet_ledger (
+create table if not exists wallet_ledger (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references profiles(id) on delete restrict,
   entry_type wallet_entry_type not null,
@@ -35,17 +42,22 @@ create table wallet_ledger (
   unique (reference_type, reference_id, user_id, entry_type)
 );
 
-create index wallet_topups_user_created_idx on wallet_topups (user_id, created_at desc);
-create index wallet_ledger_user_created_idx on wallet_ledger (user_id, created_at desc);
+create index if not exists wallet_topups_user_created_idx on wallet_topups (user_id, created_at desc);
+create index if not exists wallet_ledger_user_created_idx on wallet_ledger (user_id, created_at desc);
 
 alter table wallet_accounts enable row level security;
 alter table wallet_topups enable row level security;
 alter table wallet_ledger enable row level security;
 
+drop policy if exists "users read own wallet account" on wallet_accounts;
 create policy "users read own wallet account" on wallet_accounts for select to authenticated
   using ((select auth.uid()) = user_id);
+
+drop policy if exists "users read own topups" on wallet_topups;
 create policy "users read own topups" on wallet_topups for select to authenticated
   using ((select auth.uid()) = user_id);
+
+drop policy if exists "users read own wallet ledger" on wallet_ledger;
 create policy "users read own wallet ledger" on wallet_ledger for select to authenticated
   using ((select auth.uid()) = user_id);
 
