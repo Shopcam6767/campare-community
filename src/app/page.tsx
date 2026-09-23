@@ -1,4 +1,5 @@
 import Link from "next/link";
+import HeroVideoBanner from "@/components/hero-video-banner";
 import ProductCard from "@/components/product-card";
 import { getBrands, getProducts } from "@/lib/queries";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
@@ -28,62 +29,14 @@ export default async function HomePage() {
         </div>
       )}
 
-      {/* HERO */}
-      <section className="border-b border-ink-100 bg-linear-to-b from-brand-50 to-white">
-        <div className="mx-auto grid max-w-7xl gap-8 px-4 py-14 lg:grid-cols-2 lg:items-center">
-          <div>
-            <p className="inline-flex items-center gap-2 rounded-full bg-surface px-3 py-1 text-xs font-medium text-brand-700 ring-1 ring-brand-200">
-              เปรียบเทียบได้ 2–4 รุ่นพร้อมกัน
-            </p>
-            <h1 className="mt-4 text-3xl font-bold leading-tight sm:text-4xl">
-              เลือกกล้องให้ตรงกับ
-              <span className="text-brand-500">สิ่งที่คุณอยากถ่าย</span>
-            </h1>
-            <p className="mt-4 max-w-lg leading-relaxed text-ink-600">
-              ดูสเปกแบบ side-by-side ที่ไฮไลต์ความต่างให้อัตโนมัติ
-              เทียบราคามือสองจากประกาศจริง อ่านรีวิวจากคนใช้จริง
-              แล้วค่อยตัดสินใจ
-            </p>
-            <div className="mt-6 flex flex-wrap gap-3">
-              <Link
-                href="/category"
-                className="rounded-lg bg-brand-400 px-5 py-3 text-sm font-semibold text-white hover:bg-brand-500"
-              >
-                เริ่มเลือกสินค้า
-              </Link>
-              <Link
-                href="/compare"
-                className="rounded-lg border border-ink-200 px-5 py-3 text-sm font-semibold hover:border-brand-300 hover:text-brand-600"
-              >
-                ไปหน้าเปรียบเทียบ
-              </Link>
-            </div>
-
-            <dl className="mt-8 flex gap-8 text-sm">
-              <div>
-                <dt className="text-ink-500">รุ่นในระบบ</dt>
-                <dd className="text-xl font-bold">{recommended.length}</dd>
-              </div>
-              <div>
-                <dt className="text-ink-500">แบรนด์</dt>
-                <dd className="text-xl font-bold">{brands.length}</dd>
-              </div>
-              <div>
-                <dt className="text-ink-500">รีวิวรวม</dt>
-                <dd className="text-xl font-bold">
-                  {recommended.reduce((s, p) => s + p.review_count, 0)}
-                </dd>
-              </div>
-            </dl>
-          </div>
-
-          <div className="grid grid-cols-3 gap-3">
-            {recommended.slice(0, 3).map((p) => (
-              <ProductCard key={p.id} product={p} />
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* HERO VIDEO BANNER (Cinematic Video Banner แบบ Pop Mart) */}
+      <HeroVideoBanner
+        stats={{
+          modelsCount: recommended.length,
+          brandsCount: brands.length,
+          reviewsCount: recommended.reduce((s, p) => s + p.review_count, 0),
+        }}
+      />
 
       {/* จุดขาย 3 ข้อ (แถบใต้ hero ตาม wireframe) */}
       <section className="border-b border-ink-100">
