@@ -94,6 +94,14 @@ export default async function SiteHeader() {
                 )}
               </Link>
 
+              <Link
+                href="/wallet"
+                aria-label="กระเป๋าเงิน"
+                className="hidden rounded-lg px-3 py-2 text-sm font-medium text-ink-600 hover:bg-ink-50 sm:block"
+              >
+                กระเป๋าเงิน
+              </Link>
+
               {profile?.role === "admin" && (
                 <Link
                   href="/admin"
