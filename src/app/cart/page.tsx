@@ -108,6 +108,7 @@ export default async function CartPage() {
                   <ProductThumb
                     src={l?.thumbnail_url}
                     alt={l?.product_name ?? "สินค้า"}
+                    slug={l?.product_slug}
                     sizes="64px"
                   />
                 </div>

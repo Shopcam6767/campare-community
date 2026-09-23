@@ -4,6 +4,7 @@ import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { getAuthUser } from "@/lib/supabase/user";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
+import { getProductImageUrl } from "@/lib/product-images";
 import type { ItemCondition } from "@/lib/types";
 
 export type CartRow = {
@@ -99,7 +100,10 @@ export const getCartItems = cache(async (): Promise<CartRow[]> => {
             product_name: row.listings.products?.name ?? "-",
             product_no: row.listings.products?.product_no ?? "-",
             product_slug: row.listings.products?.slug ?? "",
-            thumbnail_url: row.listings.products?.thumbnail_url ?? null,
+            thumbnail_url: getProductImageUrl(
+              row.listings.products?.slug,
+              row.listings.products?.thumbnail_url
+            ),
           }
         : null,
     }));

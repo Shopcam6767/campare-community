@@ -75,7 +75,12 @@ export default async function ComparePage({
                 <th key={p.id} className="p-3 align-top">
                   <div className="rounded-card border border-ink-100 p-3 text-left">
                     <div className="relative aspect-4/3 overflow-hidden rounded-lg bg-ink-50">
-                      <ProductThumb src={p.thumbnail_url} alt={p.name} sizes="25vw" />
+                      <ProductThumb
+                        src={p.thumbnail_url}
+                        alt={p.name}
+                        slug={p.slug}
+                        sizes="25vw"
+                      />
                     </div>
                     <Link
                       href={`/product/${p.slug}`}

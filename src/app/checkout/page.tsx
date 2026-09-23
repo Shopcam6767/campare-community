@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 
 import CheckoutForm from "@/components/checkout/checkout-form";
+import ProductThumb from "@/components/product-thumb";
 import { cartTotals, getCartItems } from "@/lib/cart";
 import { getCurrentUser } from "@/lib/queries";
 import { formatPrice } from "@/lib/format";
@@ -60,7 +61,15 @@ export default async function CheckoutPage() {
 
             <ul className="mt-4 divide-y divide-ink-100">
               {selected.map((i) => (
-                <li key={i.id} className="flex gap-3 py-3 text-sm">
+                <li key={i.id} className="flex items-center gap-3 py-3 text-sm">
+                  <div className="relative size-12 shrink-0 overflow-hidden rounded-lg bg-ink-50 border border-ink-100">
+                    <ProductThumb
+                      src={i.listing?.thumbnail_url}
+                      alt={i.listing?.product_name ?? "สินค้า"}
+                      slug={i.listing?.product_slug}
+                      sizes="48px"
+                    />
+                  </div>
                   <div className="min-w-0 flex-1">
                     <p className="line-clamp-1 font-medium">
                       {i.listing?.title}
