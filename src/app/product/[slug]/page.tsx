@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import type { Metadata } from "next";
 
 import ProductCard from "@/components/product-card";
-import ProductThumb from "@/components/product-thumb";
+import ProductImageZoom from "@/components/product-image-zoom";
 import AddToCartButton from "@/components/cart/add-to-cart-button";
 import StarRating from "@/components/star-rating";
 import WishlistButton from "@/components/wishlist-button";
@@ -17,6 +17,7 @@ import {
   getRelatedProducts,
   getReviews,
   getWishlistEntry,
+  hasPurchasedProduct,
 } from "@/lib/queries";
 import WishlistTarget from "@/components/wishlist-target";
 import { specGroupsFor } from "@/lib/specs";
@@ -49,6 +50,12 @@ export default async function ProductPage({ params }: { params: Params }) {
   const product = await getProductBySlug(slug);
   if (!product) notFound();
 
+  // หาก URL ที่เข้ามาไม่ตรงกับ slug จริง (เช่น มีเว้นวรรค หรือพิมพ์ชื่อรุ่นมา) ให้ redirect ไปยัง canonical URL
+  const decodedSlug = decodeURIComponent(slug).trim();
+  if (decodedSlug !== product.slug) {
+    redirect(`/product/${product.slug}`);
+  }
+
   const [related, reviews, listings, session, wishlistEntry] = await Promise.all([
     getRelatedProducts(product),
     getReviews(product.id),
@@ -56,6 +63,10 @@ export default async function ProductPage({ params }: { params: Params }) {
     getCurrentUser(),
     getWishlistEntry(product.id),
   ]);
+
+  const hasPurchased = session
+    ? await hasPurchasedProduct(product.id, session.user.id)
+    : false;
 
   const price = product.market_price ?? product.msrp;
   const groups = specGroupsFor(product);
@@ -80,15 +91,13 @@ export default async function ProductPage({ params }: { params: Params }) {
       </nav>
 
       <div className="mt-6 grid gap-10 lg:grid-cols-[1.1fr_1fr]">
-        {/* รูป */}
-        <div className="relative aspect-4/3 overflow-hidden rounded-card border border-ink-100 bg-ink-50">
-          <ProductThumb
-            src={product.thumbnail_url}
-            alt={product.name}
-            priority
-            sizes="(max-width: 1024px) 100vw, 55vw"
-          />
-        </div>
+        {/* รูปพร้อมระบบซูมเข้า-ออก */}
+        <ProductImageZoom
+          src={product.thumbnail_url}
+          alt={product.name}
+          priority
+          sizes="(max-width: 1024px) 100vw, 55vw"
+        />
 
         {/* ข้อมูลหลัก */}
         <div>
@@ -291,6 +300,7 @@ export default async function ProductPage({ params }: { params: Params }) {
             productId={product.id}
             slug={product.slug}
             signedIn={!!session}
+            hasPurchased={hasPurchased}
             existing={myReview}
           />
         </div>

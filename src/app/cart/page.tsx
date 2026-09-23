@@ -91,7 +91,7 @@ export default async function CartPage() {
                     "grid size-5 place-items-center rounded border transition disabled:opacity-40 " +
                     (item.selected
                       ? "border-brand-400 bg-brand-400 text-white"
-                      : "border-ink-300 bg-white hover:border-brand-400")
+                      : "border-ink-300 bg-surface hover:border-brand-400")
                   }
                 >
                   {item.selected && (
@@ -108,6 +108,7 @@ export default async function CartPage() {
                   <ProductThumb
                     src={l?.thumbnail_url}
                     alt={l?.product_name ?? "สินค้า"}
+                    slug={l?.product_slug}
                     sizes="64px"
                   />
                 </div>

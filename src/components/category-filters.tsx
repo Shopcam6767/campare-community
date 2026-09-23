@@ -1,30 +1,33 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { PRODUCT_TYPE_LABEL, type Company, type ProductType } from "@/lib/types";
+
+/** product_count = -1 แปลว่านับไม่ได้ ให้ซ่อนตัวเลข */
+type Brand = Company & { product_count?: number };
 import { formatPrice } from "@/lib/format";
 
 const TYPES = Object.keys(PRODUCT_TYPE_LABEL) as ProductType[];
 const PRICE_FLOOR = 0;
-const PRICE_CEIL = 150000;
+const PRICE_CEIL = 250000; // กล้องแพงสุดในระบบราว 2.2 แสน (Canon EOS R1)
+const PRICE_STEP = 1000;
 
-export default function CategoryFilters({ brands }: { brands: Company[] }) {
+export default function CategoryFilters({ brands }: { brands: Brand[] }) {
   const router = useRouter();
   const params = useSearchParams();
 
-  const [maxPrice, setMaxPrice] = useState(
-    Number(params.get("max") ?? PRICE_CEIL)
-  );
-
   const push = useCallback(
-    (mutate: (p: URLSearchParams) => void) => {
+    (mutate: (p: URLSearchParams) => void, opts?: { replace?: boolean }) => {
       const next = new URLSearchParams(params.toString());
       mutate(next);
       // เปลี่ยนตัวกรองแล้วต้องกลับไปหน้า 1 เสมอ
       // ไม่งั้นค้างอยู่หน้า 120 ของผลลัพธ์เดิมที่อาจมีแค่ 3 หน้า
       next.delete("page");
-      router.push(`/category?${next.toString()}`);
+      const url = `/category?${next.toString()}`;
+      // replace = ไม่สร้างประวัติทุกครั้งที่ลาก (กด Back แล้วไม่ต้องย้อนทีละขยับ)
+      if (opts?.replace) router.replace(url, { scroll: false });
+      else router.push(url);
     },
     [params, router]
   );
@@ -36,7 +39,11 @@ export default function CategoryFilters({ brands }: { brands: Company[] }) {
   const activeYear = params.get("year") ?? "";
 
   return (
-    <aside className="space-y-6 lg:sticky lg:top-24 lg:self-start">
+    <aside
+      // จอใหญ่: ตัวกรองมี scrollbar ของตัวเอง เลื่อนแยกจากรายการสินค้า
+      // ความสูงไม่เกินจอ (หัก header + ระยะ top-24 ออก) ไม่งั้นส่วนล่างตกขอบเลื่อนไม่ถึง
+      className="space-y-6 lg:sticky lg:top-24 lg:self-start lg:max-h-[calc(100vh-7.5rem)] lg:overflow-y-auto lg:overscroll-contain lg:pr-2 lg:pb-4 lg:[scrollbar-width:thin]"
+    >
       <div className="flex items-center justify-between">
         <h2 className="text-base font-bold">ตัวกรอง</h2>
         <button
@@ -48,37 +55,19 @@ export default function CategoryFilters({ brands }: { brands: Company[] }) {
         </button>
       </div>
 
-      {/* ราคา */}
-      <section className="rounded-card border border-ink-100 p-4">
-        <p className="text-sm font-semibold">ราคา</p>
-        <input
-          type="range"
-          min={PRICE_FLOOR}
-          max={PRICE_CEIL}
-          step={1000}
-          value={maxPrice}
-          onChange={(e) => setMaxPrice(Number(e.target.value))}
-          onMouseUp={() =>
-            push((p) => {
-              if (maxPrice >= PRICE_CEIL) p.delete("max");
-              else p.set("max", String(maxPrice));
-            })
-          }
-          onTouchEnd={() =>
-            push((p) => {
-              if (maxPrice >= PRICE_CEIL) p.delete("max");
-              else p.set("max", String(maxPrice));
-            })
-          }
-          className="mt-3 w-full accent-brand-400"
-        />
-        <div className="mt-1 flex justify-between text-xs text-ink-500">
-          <span>{formatPrice(PRICE_FLOOR)}</span>
-          <span className="font-medium text-brand-600">
-            ไม่เกิน {formatPrice(maxPrice)}
-          </span>
-        </div>
-      </section>
+      {/* ราคา — กรองเรียลไทม์ขณะลาก */}
+      <PriceRange
+        initialMin={Number(params.get("min") ?? PRICE_FLOOR)}
+        initialMax={Number(params.get("max") ?? PRICE_CEIL)}
+        onApply={(lo, hi) =>
+          push((p) => {
+            if (lo <= PRICE_FLOOR) p.delete("min");
+            else p.set("min", String(lo));
+            if (hi >= PRICE_CEIL) p.delete("max");
+            else p.set("max", String(hi));
+          }, { replace: true })
+        }
+      />
 
       {/* สถานะการผลิต */}
       <section className="rounded-card border border-ink-100 p-4">
@@ -121,7 +110,7 @@ export default function CategoryFilters({ brands }: { brands: Company[] }) {
               e.target.value ? p.set("year", e.target.value) : p.delete("year")
             )
           }
-          className="mt-3 w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm outline-none focus:border-brand-400"
+          className="mt-3 w-full rounded-lg border border-ink-200 bg-surface px-3 py-2 text-sm outline-none focus:border-brand-400"
         >
           <option value="">ทุกปี</option>
           <option value="2020">ปี 2020 ขึ้นไป</option>
@@ -187,7 +176,12 @@ export default function CategoryFilters({ brands }: { brands: Company[] }) {
                 }
                 className="accent-brand-400"
               />
-              {b.name}
+              <span className="flex-1">{b.name}</span>
+              {b.product_count !== undefined && b.product_count >= 0 && (
+                <span className="text-xs tabular-nums text-ink-400">
+                  ({b.product_count.toLocaleString("th-TH")})
+                </span>
+              )}
             </label>
           ))}
         </div>
@@ -225,5 +219,151 @@ export default function CategoryFilters({ brands }: { brands: Company[] }) {
         </div>
       </section>
     </aside>
+  );
+}
+
+/**
+ * ช่วงราคาแบบ 2 หัว — ลากได้ทั้งซ้าย (ต่ำสุด) และขวา (สูงสุด) หรือพิมพ์ตัวเลขในช่อง
+ * ผลลัพธ์อัปเดตเรียลไทม์ขณะลาก (หน่วงสั้น ๆ ไม่ยิงค้นหาทุกพิกเซล)
+ *
+ * ทำจาก input[type=range] 2 ตัววางซ้อนกัน ตัวแถบปิด pointer-events
+ * ให้กดได้เฉพาะหัวจับ (สไตล์อยู่ใน globals.css → .price-range)
+ */
+const DRAG_DELAY_MS = 250; // ลาก: อัปเดตถี่พอให้รู้สึกเรียลไทม์
+const TYPE_DELAY_MS = 700; // พิมพ์: รอให้พิมพ์จบก่อน ไม่งั้นกรองตั้งแต่เลขตัวแรก
+
+function PriceRange({
+  initialMin,
+  initialMax,
+  onApply,
+}: {
+  initialMin: number;
+  initialMax: number;
+  onApply: (min: number, max: number) => void;
+}) {
+  const clamp = (n: number) =>
+    Math.min(PRICE_CEIL, Math.max(PRICE_FLOOR, Number.isFinite(n) ? n : 0));
+  const [lo, setLo] = useState(clamp(initialMin));
+  const [hi, setHi] = useState(clamp(initialMax));
+  const [delay, setDelay] = useState(DRAG_DELAY_MS);
+  const dragging = useRef(false);
+
+  // ค่าจาก URL เปลี่ยนจากที่อื่น (เช่นกด "ล้างทั้งหมด") → ตามให้ตรง
+  // แต่ถ้ากำลังลากอยู่ ห้ามทับ ไม่งั้นหัวจับจะเด้งกลับกลางมือ
+  useEffect(() => {
+    if (dragging.current) return;
+    setLo(clamp(initialMin));
+    setHi(clamp(initialMax));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialMin, initialMax]);
+
+  // ค่าเปลี่ยน → รอสักครู่แล้วค่อยกรอง
+  useEffect(() => {
+    const a = clamp(Math.min(lo, hi));
+    const b = clamp(Math.max(lo, hi));
+    if (a === clamp(initialMin) && b === clamp(initialMax)) return;
+    const t = setTimeout(() => onApply(a, b), delay);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lo, hi]);
+
+  // หัวซ้ายห้ามเลยหัวขวา และกลับกัน
+  const setLow = (n: number) => setLo(Math.min(clamp(n), hi));
+  const setHigh = (n: number) => setHi(Math.max(clamp(n), lo));
+
+  const pct = (n: number) => ((n - PRICE_FLOOR) / (PRICE_CEIL - PRICE_FLOOR)) * 100;
+
+  const dragProps = {
+    onPointerDown: () => {
+      dragging.current = true;
+      setDelay(DRAG_DELAY_MS);
+    },
+    onPointerUp: () => {
+      dragging.current = false;
+    },
+    onPointerCancel: () => {
+      dragging.current = false;
+    },
+  };
+
+  return (
+    <section className="rounded-card border border-ink-100 p-4">
+      <p className="text-sm font-semibold">ราคา</p>
+
+      <div className="mt-3 flex items-center gap-2">
+        <input
+          type="number"
+          inputMode="numeric"
+          aria-label="ราคาต่ำสุด"
+          value={lo}
+          min={PRICE_FLOOR}
+          max={hi}
+          step={PRICE_STEP}
+          onChange={(e) => {
+            setDelay(TYPE_DELAY_MS);
+            setLo(Number(e.target.value));
+          }}
+          onBlur={() => setLow(lo)}
+          className="w-full rounded-lg border border-ink-200 px-2 py-1.5 text-center text-sm outline-none focus:border-brand-400"
+        />
+        <span className="text-ink-400">–</span>
+        <input
+          type="number"
+          inputMode="numeric"
+          aria-label="ราคาสูงสุด"
+          value={hi}
+          min={lo}
+          max={PRICE_CEIL}
+          step={PRICE_STEP}
+          onChange={(e) => {
+            setDelay(TYPE_DELAY_MS);
+            setHi(Number(e.target.value));
+          }}
+          onBlur={() => setHigh(hi)}
+          className="w-full rounded-lg border border-ink-200 px-2 py-1.5 text-center text-sm outline-none focus:border-brand-400"
+        />
+      </div>
+
+      <div className="price-range relative mt-4 h-5">
+        {/* แถบพื้น + ช่วงที่เลือก */}
+        <div className="absolute inset-x-0 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-ink-100" />
+        <div
+          className="absolute top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-brand-400"
+          // หัวจับกว้าง 20px จุดกึ่งกลางเลยเดินได้แค่ 10px → (100% - 10px)
+          style={{
+            left: `calc(10px + (100% - 20px) * ${pct(lo) / 100})`,
+            right: `calc(10px + (100% - 20px) * ${1 - pct(hi) / 100})`,
+          }}
+        />
+        <input
+          type="range"
+          aria-label="ลากเพื่อตั้งราคาต่ำสุด"
+          min={PRICE_FLOOR}
+          max={PRICE_CEIL}
+          step={PRICE_STEP}
+          value={lo}
+          onChange={(e) => setLow(Number(e.target.value))}
+          {...dragProps}
+          // หัวซ้ายชนขวาสุดแล้ว ยกขึ้นมาข้างบนไม่งั้นจะลากกลับไม่ได้
+          style={{ zIndex: lo >= PRICE_CEIL - PRICE_STEP ? 5 : 3 }}
+        />
+        <input
+          type="range"
+          aria-label="ลากเพื่อตั้งราคาสูงสุด"
+          min={PRICE_FLOOR}
+          max={PRICE_CEIL}
+          step={PRICE_STEP}
+          value={hi}
+          onChange={(e) => setHigh(Number(e.target.value))}
+          {...dragProps}
+          style={{ zIndex: 4 }}
+        />
+      </div>
+
+      <div className="mt-1 flex justify-between text-xs text-ink-500">
+        <span>{formatPrice(lo)}</span>
+        <span>{hi >= PRICE_CEIL ? `${formatPrice(PRICE_CEIL)}+` : formatPrice(hi)}</span>
+      </div>
+    </section>
   );
 }

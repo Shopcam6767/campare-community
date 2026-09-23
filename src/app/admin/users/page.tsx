@@ -80,7 +80,7 @@ export default async function AdminUsersPage() {
                       className={
                         "rounded-full px-2.5 py-0.5 text-[11px] font-medium " +
                         (u.role === "admin"
-                          ? "bg-ink-800 text-white"
+                          ? "bg-neutral-800 text-white"
                           : "bg-ink-100 text-ink-600")
                       }
                     >

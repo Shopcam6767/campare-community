@@ -4,6 +4,7 @@ import { getCurrentUser } from "@/lib/queries";
 import { getCartCount } from "@/lib/cart";
 import { getUnreadCount } from "@/lib/notifications";
 import SearchBar from "@/components/search-bar";
+import ThemeToggle from "@/components/theme-toggle";
 
 /** useSearchParams ต้องอยู่ใต้ Suspense ไม่งั้น build จะ error */
 function Search() {
@@ -24,7 +25,7 @@ export default async function SiteHeader() {
     : [0, 0];
 
   return (
-    <header className="sticky top-0 z-40 border-b border-ink-100 bg-white/90 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-ink-100 bg-surface/90 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3">
         <Link href="/" className="shrink-0 text-lg font-bold tracking-tight">
           Shop<span className="text-brand-400">cam</span>
@@ -58,6 +59,8 @@ export default async function SiteHeader() {
           <div className="hidden w-full max-w-xs lg:block">
             <Search />
           </div>
+
+          <ThemeToggle />
 
           {session ? (
             <div className="flex items-center gap-2">

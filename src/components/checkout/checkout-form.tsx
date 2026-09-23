@@ -3,6 +3,8 @@
 import { useActionState, useState } from "react";
 import { placeOrder, type CheckoutState } from "@/app/checkout/actions";
 import SubmitButton from "@/components/auth/submit-button";
+import AddressFields from "@/components/checkout/address-fields";
+import { EMPTY_ADDRESS, type ThaiAddress } from "@/lib/thai-address";
 
 const initial: CheckoutState = {};
 
@@ -16,6 +18,9 @@ const METHODS = [
 export default function CheckoutForm() {
   const [state, formAction] = useActionState(placeOrder, initial);
   const [method, setMethod] = useState<string>("mobile_banking");
+  const [ship, setShip] = useState<ThaiAddress>(EMPTY_ADDRESS);
+  const [bill, setBill] = useState<ThaiAddress>(EMPTY_ADDRESS);
+  const [sameBilling, setSameBilling] = useState(true);
 
   return (
     <form action={formAction} className="space-y-8">
@@ -61,18 +66,30 @@ export default function CheckoutForm() {
 
       <section>
         <h2 className="font-bold">ที่อยู่จัดส่ง</h2>
-        <textarea
-          name="address"
-          rows={4}
-          required
-          minLength={10}
-          className="mt-3 w-full rounded-lg border border-ink-200 px-3 py-2.5 text-sm outline-none focus:border-brand-400"
-          placeholder={"ชื่อผู้รับ เบอร์โทร\nบ้านเลขที่ ถนน แขวง/ตำบล\nเขต/อำเภอ จังหวัด รหัสไปรษณีย์"}
-        />
-        <p className="mt-1 text-xs text-ink-400">
-          ถ้าเลือกชำระเงินสดแบบนัดรับ ให้ระบุจุดนัดพบแทนได้
-        </p>
+        <div className="mt-3 rounded-card border border-ink-100 p-4 sm:p-5">
+          <AddressFields prefix="ship_" value={ship} onChange={setShip} />
+
+          <label className="mt-5 flex cursor-pointer items-center gap-2 text-sm text-ink-600">
+            <input
+              type="checkbox"
+              name="same_billing"
+              checked={sameBilling}
+              onChange={(e) => setSameBilling(e.target.checked)}
+              className="size-4 accent-brand-400"
+            />
+            ที่อยู่จัดส่งและที่อยู่สำหรับออกใบเสร็จเหมือนกัน
+          </label>
+        </div>
       </section>
+
+      {!sameBilling && (
+        <section>
+          <h2 className="font-bold">ที่อยู่สำหรับออกใบเสร็จ</h2>
+          <div className="mt-3 rounded-card border border-ink-100 p-4 sm:p-5">
+            <AddressFields prefix="bill_" value={bill} onChange={setBill} />
+          </div>
+        </section>
+      )}
 
       {state.error && (
         <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">

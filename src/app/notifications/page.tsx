@@ -87,7 +87,7 @@ export default async function NotificationsPage() {
               className={
                 "flex items-start gap-3 rounded-card border p-4 transition " +
                 (n.is_read
-                  ? "border-ink-100 bg-white"
+                  ? "border-ink-100 bg-surface"
                   : "border-brand-200 bg-brand-50")
               }
             >

@@ -68,14 +68,19 @@ export default async function ComparePage({
         <table className="w-full min-w-3xl border-separate border-spacing-0">
           <thead>
             <tr>
-              <th className="sticky left-0 z-10 w-44 bg-white p-3 text-left align-top text-sm text-ink-500">
+              <th className="sticky left-0 z-10 w-44 bg-surface p-3 text-left align-top text-sm text-ink-500">
                 รายการ
               </th>
               {products.map((p) => (
                 <th key={p.id} className="p-3 align-top">
                   <div className="rounded-card border border-ink-100 p-3 text-left">
                     <div className="relative aspect-4/3 overflow-hidden rounded-lg bg-ink-50">
-                      <ProductThumb src={p.thumbnail_url} alt={p.name} sizes="25vw" />
+                      <ProductThumb
+                        src={p.thumbnail_url}
+                        alt={p.name}
+                        slug={p.slug}
+                        sizes="25vw"
+                      />
                     </div>
                     <Link
                       href={`/product/${p.slug}`}
@@ -168,7 +173,7 @@ function FragmentGroup({
         const differs = new Set(values).size > 1;
         return (
           <tr key={row.label} className="text-sm">
-            <td className="sticky left-0 z-10 border-b border-ink-100 bg-white px-3 py-2.5 text-ink-500">
+            <td className="sticky left-0 z-10 border-b border-ink-100 bg-surface px-3 py-2.5 text-ink-500">
               {row.label}
             </td>
             {values.map((v, i) => (

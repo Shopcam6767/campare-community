@@ -9,21 +9,23 @@ export default function ProductCard({ product }: { product: Product }) {
   const price = product.market_price ?? product.msrp;
 
   return (
-    <article className="group relative flex flex-col overflow-hidden rounded-card border border-ink-100 bg-white transition hover:border-brand-300 hover:shadow-lg hover:shadow-brand-100/50">
+    <article className="group relative flex flex-col overflow-hidden rounded-card border border-ink-100 bg-surface transition hover:border-brand-300 hover:shadow-lg hover:shadow-brand-100/50">
       <div className="absolute right-2 top-2 z-10">
         <WishlistButton productId={product.id} />
       </div>
 
       <Link href={`/product/${product.slug}`} className="block">
-        <div className="relative aspect-4/3 overflow-hidden bg-ink-50">
+        <div className="relative aspect-4/3 overflow-hidden bg-white">
           <ProductThumb
             src={product.thumbnail_url}
             alt={product.name}
-            sizes="(max-width: 768px) 50vw, 25vw"
+            slug={product.slug}
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 16vw"
+            fit="contain"
             className="transition duration-300 group-hover:scale-105"
           />
           {product.status === "discontinued" && (
-            <span className="absolute left-2 top-2 rounded-md bg-ink-800/85 px-2 py-1 text-[11px] font-medium text-white">
+            <span className="absolute left-2 top-2 rounded-md bg-neutral-800/85 px-2 py-1 text-[11px] font-medium text-white">
               เลิกผลิตแล้ว
             </span>
           )}

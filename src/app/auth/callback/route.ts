@@ -11,7 +11,14 @@ export async function GET(request: NextRequest) {
   if (code && isSupabaseConfigured) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) return NextResponse.redirect(`${origin}${next}`);
+    if (!error) {
+      const { data: active } = await supabase.rpc("is_account_active");
+      if (active === false) {
+        await supabase.auth.signOut();
+        return NextResponse.redirect(`${origin}/login?error=suspended`);
+      }
+      return NextResponse.redirect(`${origin}${next}`);
+    }
   }
 
   return NextResponse.redirect(`${origin}/login?error=auth_callback_failed`);

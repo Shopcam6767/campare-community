@@ -4,7 +4,7 @@ import CategoryFilters from "@/components/category-filters";
 import ProductCard from "@/components/product-card";
 import SortSelect from "@/components/sort-select";
 import Pagination from "@/components/pagination";
-import { getBrands, getProductsPage, type ProductFilters } from "@/lib/queries";
+import { getBrandsWithCount, getProductsPage, type ProductFilters } from "@/lib/queries";
 import { PRODUCT_TYPE_LABEL, type ProductType } from "@/lib/types";
 
 export const metadata: Metadata = { title: "สินค้าทั้งหมด" };
@@ -13,6 +13,7 @@ type SearchParams = Promise<{
   q?: string;
   type?: string;
   brand?: string | string[];
+  min?: string;
   max?: string;
   rating?: string;
   sort?: string;
@@ -36,6 +37,7 @@ export default async function CategoryPage({
         ? sp.brand
         : [sp.brand]
       : undefined,
+    minPrice: sp.min ? Number(sp.min) : undefined,
     maxPrice: sp.max ? Number(sp.max) : undefined,
     minRating: sp.rating ? Number(sp.rating) : undefined,
     status: sp.status as ProductFilters["status"],
@@ -45,7 +47,7 @@ export default async function CategoryPage({
 
   const [page, brands] = await Promise.all([
     getProductsPage(filters, Number(sp.page) || 1),
-    getBrands(),
+    getBrandsWithCount(),
   ]);
   const products = page.items;
 

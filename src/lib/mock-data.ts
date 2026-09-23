@@ -1,4 +1,5 @@
 import type { Product } from "./types";
+import { SEED_PRODUCT_IMAGES } from "./product-images";
 
 /**
  * ข้อมูลสำรองให้เว็บรันได้ก่อนที่จะต่อ Supabase จริง
@@ -12,8 +13,8 @@ const C = (name: string, slug: string): Product["companies"] => ({
   logo_url: null,
 });
 
-const img = (t: string) =>
-  `https://placehold.co/600x400/1a1a20/F5A623?text=${encodeURIComponent(t)}`;
+const img = (slug: string) =>
+  SEED_PRODUCT_IMAGES[slug] ?? `/images/products/${slug}.jpg`;
 
 export const MOCK_PRODUCTS: Product[] = [
   {
@@ -27,7 +28,7 @@ export const MOCK_PRODUCTS: Product[] = [
     status: "in_production",
     msrp: 79900,
     market_price: 68000,
-    thumbnail_url: img("A7C II"),
+    thumbnail_url: img("sony-a7c-ii"),
     summary: "ฟูลเฟรมตัวเล็ก น้ำหนักเบา AF แม่นมาก เหมาะกับสายพกพาและวิดีโอ",
     best_for: ["travel", "portrait", "vlog"],
     highlight: ["Full Frame ในบอดี้เล็ก", "IBIS 7 stop", "AI AF ตรวจจับคน/สัตว์"],
@@ -67,7 +68,7 @@ export const MOCK_PRODUCTS: Product[] = [
     status: "in_production",
     msrp: 54900,
     market_price: 46000,
-    thumbnail_url: img("A6700"),
+    thumbnail_url: img("sony-a6700"),
     summary: "APS-C เรือธง ตัวคุ้มสำหรับสายวิดีโอที่ยังอยากได้ภาพนิ่งดี ๆ",
     best_for: ["vlog", "sport", "travel"],
     highlight: ["APS-C 26MP", "4K 120p", "จับโฟกัสไว"],
@@ -107,7 +108,7 @@ export const MOCK_PRODUCTS: Product[] = [
     status: "in_production",
     msrp: 89900,
     market_price: 72000,
-    thumbnail_url: img("R6 II"),
+    thumbnail_url: img("canon-eos-r6-ii"),
     summary: "ตัวกลางฟูลเฟรมของ Canon ถ่ายต่อเนื่อง 40 fps เหมาะกับงานอีเวนต์และกีฬา",
     best_for: ["sport", "wedding", "portrait"],
     highlight: ["40 fps ไฟฟ้า", "Dual Pixel AF II", "บอดี้กันละอองน้ำ"],
@@ -147,7 +148,7 @@ export const MOCK_PRODUCTS: Product[] = [
     status: "in_production",
     msrp: 26900,
     market_price: 21000,
-    thumbnail_url: img("R50"),
+    thumbnail_url: img("canon-eos-r50"),
     summary: "มิเรอร์เลสตัวเริ่มต้น เบามาก ใช้ง่าย เหมาะกับมือใหม่และคอนเทนต์",
     best_for: ["beginner", "vlog", "travel"],
     highlight: ["น้ำหนัก 375 กรัม", "โหมดออโต้ฉลาด", "ราคาเข้าถึงง่าย"],
@@ -187,7 +188,7 @@ export const MOCK_PRODUCTS: Product[] = [
     status: "in_production",
     msrp: 89900,
     market_price: 79000,
-    thumbnail_url: img("Z6 III"),
+    thumbnail_url: img("nikon-z6-iii"),
     summary: "เซนเซอร์ partially stacked ตัวแรกของโลก จุดเด่นคือวิดีโอ RAW ในตัว",
     best_for: ["video", "sport", "night"],
     highlight: ["Partially stacked sensor", "N-RAW ในตัว", "EVF สว่าง 4000 nits"],
@@ -227,7 +228,7 @@ export const MOCK_PRODUCTS: Product[] = [
     status: "in_production",
     msrp: 62900,
     market_price: 52000,
-    thumbnail_url: img("X-T5"),
+    thumbnail_url: img("fujifilm-x-t5"),
     summary: "APS-C 40MP ดีไซน์ปุ่มหมุนคลาสสิก ฟิล์มซิมูเลชันเป็นจุดขาย",
     best_for: ["street", "portrait", "travel"],
     highlight: ["40MP APS-C", "Film Simulation 19 แบบ", "ปุ่มหมุนแมนนวล"],
@@ -267,7 +268,7 @@ export const MOCK_PRODUCTS: Product[] = [
     status: "in_production",
     msrp: 56900,
     market_price: 62000,
-    thumbnail_url: img("X100VI"),
+    thumbnail_url: img("fujifilm-x100vi"),
     summary:
       "คอมแพ็กต์เลนส์ฟิกซ์ 35mm ยอดฮิตสายสตรีท ของขาดตลาดจนราคามือสองแพงกว่าป้าย",
     best_for: ["street", "travel", "daily"],
@@ -308,7 +309,7 @@ export const MOCK_PRODUCTS: Product[] = [
     status: "in_production",
     msrp: 79900,
     market_price: 49000,
-    thumbnail_url: img("OM-1"),
+    thumbnail_url: img("olympus-om-1"),
     summary: "MFT บอดี้ทนสภาพอากาศระดับ IP53 เหมาะสายเดินป่า ถ่ายนก",
     best_for: ["wildlife", "landscape", "travel"],
     highlight: ["กันน้ำ IP53", "50 fps AF/AE ต่อเนื่อง", "Live ND ในตัว"],
@@ -348,7 +349,7 @@ export const MOCK_PRODUCTS: Product[] = [
     status: "discontinued",
     msrp: 22900,
     market_price: 12000,
-    thumbnail_url: img("G100"),
+    thumbnail_url: img("panasonic-g100"),
     summary: "กล้อง vlog ตัวเล็ก มีไมค์ OZO 3 ทิศทางในตัว เลิกผลิตแล้วแต่มือสองคุ้ม",
     best_for: ["vlog", "beginner"],
     highlight: ["ไมค์ OZO ในตัว", "จอพลิกได้", "เลิกผลิตแล้ว ราคามือสองถูก"],
@@ -388,7 +389,7 @@ export const MOCK_PRODUCTS: Product[] = [
     status: "in_production",
     msrp: 8990,
     market_price: 6000,
-    thumbnail_url: img("FE 50mm"),
+    thumbnail_url: img("sony-fe-50mm-f18"),
     summary: "เลนส์ฟิกซ์ราคาประหยัด ละลายหลังได้ดี เหมาะเป็นเลนส์ตัวที่สอง",
     best_for: ["portrait", "daily"],
     highlight: ["ราคาถูกที่สุดในกลุ่มฟิกซ์ FE", "เบา 186 กรัม"],
@@ -420,7 +421,7 @@ export const MOCK_PRODUCTS: Product[] = [
     status: "in_production",
     msrp: 19900,
     market_price: 15500,
-    thumbnail_url: img("18-50mm"),
+    thumbnail_url: img("sigma-18-50-f28"),
     summary: "ซูมรูรับแสงคงที่ f/2.8 สำหรับ APS-C เล็กและเบาผิดปกติ",
     best_for: ["travel", "wedding", "daily"],
     highlight: ["f/2.8 ตลอดช่วง", "เล็กกว่าคู่แข่งครึ่งหนึ่ง"],
@@ -452,7 +453,7 @@ export const MOCK_PRODUCTS: Product[] = [
     status: "in_production",
     msrp: 7490,
     market_price: 5200,
-    thumbnail_url: img("RF 50mm"),
+    thumbnail_url: img("canon-rf-50mm-f18"),
     summary: "นิฟตี้ฟิฟตี้ของระบบ RF คุ้มที่สุดสำหรับมือใหม่",
     best_for: ["portrait", "beginner"],
     highlight: ["ราคาเบา", "STM เงียบ เหมาะถ่ายวิดีโอ"],
@@ -484,7 +485,7 @@ export const MOCK_PRODUCTS: Product[] = [
     status: "in_production",
     msrp: 9900,
     market_price: 6500,
-    thumbnail_url: img("Befree"),
+    thumbnail_url: img("manfrotto-befree-3"),
     summary: "ขาตั้งพับพกพา อลูมิเนียม พับสั้น 40 ซม. ใส่กระเป๋าเป้ได้",
     best_for: ["travel", "landscape"],
     highlight: ["พับสั้น 40 ซม.", "รับน้ำหนัก 8 กก."],
@@ -503,7 +504,7 @@ export const MOCK_PRODUCTS: Product[] = [
     status: "in_production",
     msrp: 2790,
     market_price: 1900,
-    thumbnail_url: img("Slide"),
+    thumbnail_url: img("peak-design-slide"),
     summary: "สายคล้องกล้องปรับความยาวไวด้วยมือเดียว ถอดเปลี่ยนได้",
     best_for: ["daily", "travel"],
     highlight: ["ปรับความยาวมือเดียว", "Anchor Link ถอดไว"],

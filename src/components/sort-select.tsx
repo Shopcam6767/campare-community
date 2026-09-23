@@ -25,7 +25,7 @@ export default function SortSelect() {
           next.delete("page"); // เปลี่ยนการเรียงแล้วต้องกลับไปหน้า 1
           router.push(`/category?${next.toString()}`);
         }}
-        className="rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm text-ink-800 outline-none focus:border-brand-400"
+        className="rounded-lg border border-ink-200 bg-surface px-3 py-2 text-sm text-ink-800 outline-none focus:border-brand-400"
       >
         {OPTIONS.map(([v, label]) => (
           <option key={v} value={v}>
