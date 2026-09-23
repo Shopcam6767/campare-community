@@ -595,11 +595,55 @@ export const getCurrentUser = cache(async () => {
 
   try {
     const supabase = await createClient();
-    const { data: profile } = await supabase
+    let { data: profile } = await supabase
       .from("profiles")
       .select("*")
       .eq("id", user.id)
       .maybeSingle();
+
+    if (!profile) {
+      const defaultName =
+        (user.user_metadata?.display_name as string) ||
+        (user.user_metadata?.username as string) ||
+        user.email?.split("@")[0] ||
+        "ผู้ใช้";
+
+      const fallback = {
+        id: user.id,
+        username: user.email?.split("@")[0] ?? `user_${user.id.slice(0, 4)}`,
+        display_name: defaultName,
+        email: user.email ?? null,
+        phone: (user.user_metadata?.phone as string) || null,
+        bio: null,
+        avatar_url: null,
+        role: "user" as const,
+        is_deleted: false,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      // พยายามสร้างแถวโปรไฟล์ใน DB
+      try {
+        const { data: newProfile } = await supabase
+          .from("profiles")
+          .upsert(
+            {
+              id: user.id,
+              username: fallback.username,
+              display_name: fallback.display_name,
+              email: fallback.email,
+              phone: fallback.phone,
+            },
+            { onConflict: "id" }
+          )
+          .select()
+          .maybeSingle();
+
+        profile = newProfile ?? fallback;
+      } catch {
+        profile = fallback;
+      }
+    }
 
     return { user, profile };
   } catch {

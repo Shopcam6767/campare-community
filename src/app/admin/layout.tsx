@@ -29,7 +29,7 @@ export default async function AdminLayout({
             <p className="text-xs uppercase tracking-wide text-ink-400">
               ผู้ดูแลระบบ
             </p>
-            <p className="mt-1 font-semibold">{profile.display_name}</p>
+            <p className="mt-1 font-semibold">{profile?.display_name ?? "ผู้ดูแล"}</p>
           </div>
 
           <nav className="mt-4 space-y-1">

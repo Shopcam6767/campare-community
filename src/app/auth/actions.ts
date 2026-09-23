@@ -111,14 +111,23 @@ export async function updateProfile(
   } = await supabase.auth.getUser();
   if (!user) return { error: "กรุณาเข้าสู่ระบบก่อน" };
 
+  const displayName = String(formData.get("display_name") ?? "").trim();
+  const phone = String(formData.get("phone") ?? "").trim() || null;
+  const bio = String(formData.get("bio") ?? "").trim() || null;
+
   const { error } = await supabase
     .from("profiles")
-    .update({
-      display_name: String(formData.get("display_name") ?? "").trim(),
-      phone: String(formData.get("phone") ?? "").trim() || null,
-      bio: String(formData.get("bio") ?? "").trim() || null,
-    })
-    .eq("id", user.id);
+    .upsert(
+      {
+        id: user.id,
+        username: user.email?.split("@")[0] ?? `user_${user.id.slice(0, 4)}`,
+        display_name: displayName || user.email?.split("@")[0] || "ผู้ใช้",
+        email: user.email,
+        phone,
+        bio,
+      },
+      { onConflict: "id" }
+    );
 
   if (error) return { error: error.message };
 

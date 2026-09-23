@@ -60,8 +60,9 @@ export default async function ProfilePage({
   const session = await getCurrentUser();
   if (!session) redirect("/login?next=/profile");
 
-  const profile = session.profile as Profile;
+  const profile = session.profile as Profile | null;
   const supabase = await createClient();
+  const userId = profile?.id ?? session.user.id;
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
@@ -70,10 +71,16 @@ export default async function ProfilePage({
         <aside className="lg:sticky lg:top-24 lg:self-start">
           <div className="flex flex-col items-center rounded-card border border-ink-100 p-5 text-center">
             <span className="grid size-16 place-items-center rounded-full bg-brand-100 text-xl font-bold text-brand-700">
-              {(profile?.display_name ?? "U").charAt(0).toUpperCase()}
+              {(profile?.display_name ?? session.user.email?.charAt(0) ?? "U")
+                .charAt(0)
+                .toUpperCase()}
             </span>
-            <p className="mt-3 font-semibold">{profile?.display_name}</p>
-            <p className="text-xs text-ink-500">{profile?.email}</p>
+            <p className="mt-3 font-semibold">
+              {profile?.display_name ?? session.user.email?.split("@")[0] ?? "ผู้ใช้"}
+            </p>
+            <p className="text-xs text-ink-500">
+              {profile?.email ?? session.user.email}
+            </p>
             {profile?.role === "admin" && (
               <span className="mt-2 rounded-full bg-neutral-800 px-2.5 py-0.5 text-[11px] text-white">
                 ผู้ดูแลระบบ
@@ -119,10 +126,10 @@ export default async function ProfilePage({
             </>
           )}
 
-          {tab === "selling" && <SellingTab supabase={supabase} userId={profile.id} />}
+          {tab === "selling" && <SellingTab supabase={supabase} userId={userId} />}
           {tab === "purchase" && <PurchaseTab supabase={supabase} />}
-          {tab === "review" && <ReviewTab supabase={supabase} userId={profile.id} />}
-          {tab === "favourite" && <FavouriteTab supabase={supabase} userId={profile.id} />}
+          {tab === "review" && <ReviewTab supabase={supabase} userId={userId} />}
+          {tab === "favourite" && <FavouriteTab supabase={supabase} userId={userId} />}
         </section>
       </div>
     </div>

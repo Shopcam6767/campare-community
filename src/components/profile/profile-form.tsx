@@ -10,7 +10,7 @@ const initial: AuthState = {};
 const field =
   "mt-1 w-full rounded-lg border border-ink-200 px-3 py-2.5 text-sm outline-none focus:border-brand-400";
 
-export default function ProfileForm({ profile }: { profile: Profile }) {
+export default function ProfileForm({ profile }: { profile: Profile | null }) {
   const [state, formAction] = useActionState(updateProfile, initial);
 
   return (
@@ -22,7 +22,7 @@ export default function ProfileForm({ profile }: { profile: Profile }) {
         <input
           id="display_name"
           name="display_name"
-          defaultValue={profile.display_name ?? ""}
+          defaultValue={profile?.display_name ?? ""}
           required
           className={field}
         />
@@ -31,7 +31,7 @@ export default function ProfileForm({ profile }: { profile: Profile }) {
       <div>
         <label className="text-sm font-medium">อีเมล</label>
         <input
-          value={profile.email ?? ""}
+          value={profile?.email ?? ""}
           disabled
           className={`${field} bg-ink-50 text-ink-500`}
         />
@@ -48,7 +48,7 @@ export default function ProfileForm({ profile }: { profile: Profile }) {
           id="phone"
           name="phone"
           type="tel"
-          defaultValue={profile.phone ?? ""}
+          defaultValue={profile?.phone ?? ""}
           className={field}
         />
       </div>
@@ -61,7 +61,7 @@ export default function ProfileForm({ profile }: { profile: Profile }) {
           id="bio"
           name="bio"
           rows={3}
-          defaultValue={profile.bio ?? ""}
+          defaultValue={profile?.bio ?? ""}
           className={field}
           placeholder="เช่น ถ่ายสตรีทเป็นหลัก ใช้ Fuji มา 3 ปี"
         />
