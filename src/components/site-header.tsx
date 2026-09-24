@@ -97,6 +97,18 @@ export default async function SiteHeader() {
                 )}
               </Link>
 
+              <Link
+                href="/wallet"
+                aria-label="กระเป๋าเงิน"
+                className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium text-ink-600 hover:bg-ink-50 hover:text-brand-600"
+              >
+                <svg className="size-4.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                </svg>
+                <span className="hidden sm:inline">กระเป๋าเงิน</span>
+              </Link>
+
+
               {profile?.role === "admin" && (
                 <Link
                   href="/admin"

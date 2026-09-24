@@ -96,6 +96,16 @@ export default async function ProfilePage({
                 {label}
               </Link>
             ))}
+            <Link
+              href="/wallet"
+              className="flex items-center justify-between rounded-lg px-4 py-2.5 text-sm font-medium text-ink-600 transition hover:bg-ink-50 hover:text-brand-600"
+            >
+              <span className="flex items-center gap-2">
+                <span>💳</span>
+                <span>กระเป๋าเงิน (Wallet)</span>
+              </span>
+              <span className="text-xs text-ink-400">→</span>
+            </Link>
           </nav>
 
           <form action={signOut} className="mt-4">
