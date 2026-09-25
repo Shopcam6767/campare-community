@@ -5,14 +5,17 @@ import { getBrands, getProducts } from "@/lib/queries";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { PRODUCT_TYPE_LABEL, type ProductType } from "@/lib/types";
 
-const CATEGORIES: { type: ProductType; icon: string }[] = [
-  { type: "camera", icon: "📷" },
-  { type: "lens", icon: "🔎" },
-  { type: "tripod", icon: "🦵" },
-  { type: "filter", icon: "🟠" },
-  { type: "strap", icon: "🎗️" },
-  { type: "grip", icon: "🔋" },
-];
+const CATEGORIES = [
+  { type: "camera", image: "/images/categories/camera.webp" },
+  { type: "lens", image: "/images/categories/lens.webp" },
+  { type: "tripod", image: "/images/categories/tripod.webp" },
+  { type: "filter", image: "/images/categories/filter.webp" },
+  { type: "strap", image: "/images/categories/strap.webp" },
+  { type: "grip", image: "/images/categories/grip.webp" },
+] satisfies {
+  type: ProductType;
+  image: string;
+}[];
 
 export default async function HomePage() {
   const [recommended, newest, brands] = await Promise.all([
@@ -57,24 +60,32 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ประเภทสินค้า */}
-      <section className="mx-auto max-w-7xl px-4 py-10">
-        <h2 className="text-xl font-bold">ประเภทสินค้า</h2>
-        <div className="mt-4 grid grid-cols-3 gap-3 sm:grid-cols-6">
-          {CATEGORIES.map(({ type, icon }) => (
-            <Link
-              key={type}
-              href={`/category?type=${type}`}
-              className="flex flex-col items-center gap-2 rounded-card border border-ink-100 p-4 text-center transition hover:border-brand-300 hover:bg-brand-50"
-            >
-              <span className="text-2xl">{icon}</span>
-              <span className="text-xs font-medium">
-                {PRODUCT_TYPE_LABEL[type]}
-              </span>
-            </Link>
-          ))}
+{/* ประเภทสินค้า */}
+<section className="mx-auto max-w-7xl px-4 py-10">
+  <h2 className="text-xl font-bold">ประเภทสินค้า</h2>
+
+  <div className="scroll-slim mt-6 flex gap-6 overflow-x-auto pb-4 sm:gap-8">
+    {CATEGORIES.map(({ type, image }) => (
+      <Link
+        key={type}
+        href={`/category?type=${type}`}
+        className="group flex min-w-[140px] flex-1 flex-col items-center"
+      >
+        <div className="flex h-32 w-32 items-center justify-center">
+          <img
+            src={image}
+            alt={PRODUCT_TYPE_LABEL[type]}
+            className="max-h-full max-w-full object-contain transition-transform duration-300 group-hover:scale-105"
+          />
         </div>
-      </section>
+
+        <span className="mt-3 text-sm font-semibold transition-colors group-hover:text-brand-600">
+          {PRODUCT_TYPE_LABEL[type]}
+        </span>
+      </Link>
+    ))}
+  </div>
+</section>
 
       {/* สินค้าแนะนำ */}
       <section className="mx-auto max-w-7xl px-4 pb-10">
